@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payment - Parking Slot Booking System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="navbar">
+    <h1>Parking Slot Booking System</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="history.html">My Bookings</a>
+      <a href="login.html">Logout</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <h2>Booking Summary & Payment</h2>
+
+  <table>
+    <tr>
+      <th>Facility</th>
+      <td>City Mall Parking</td>
+    </tr>
+    <tr>
+      <th>Slot</th>
+      <td>A4</td>
+    </tr>
+    <tr>
+      <th>Date</th>
+      <td>08-07-2026</td>
+    </tr>
+    <tr>
+      <th>Duration</th>
+      <td>2 hours</td>
+    </tr>
+    <tr>
+      <th>Rate</th>
+      <td>Rs. 20 / hour</td>
+    </tr>
+    <tr>
+      <th>Total Amount</th>
+      <td><strong>Rs. 40</strong></td>
+    </tr>
+  </table>
+
+  <h3 style="margin-top:20px;">Payment</h3>
+  <p>Click the button below to pay using Razorpay. This is Test Mode, so no real money is charged.</p>
+
+  <button id="rzp-button" class="btn">Pay Rs. 40 with Razorpay</button>
+  <p class="small-note">Payments are processed securely through Razorpay (Test Mode, for demo purposes).</p>
+</div>
+
+<footer>
+  &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
+</footer>
+
+<!-- Step 1: Load Razorpay's checkout script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<!-- Step 2: Open Razorpay's payment popup when the button is clicked -->
+<script>
+  document.getElementById('rzp-button').onclick = function (e) {
+
+    var options = {
+      "key": "rzp_test_TAyTdm1bjJolB1",
+
+      "amount": "4000",        // Amount is in paise. 4000 paise = Rs. 40
+      "currency": "INR",
+      "name": "Parking Slot Booking System",
+      "description": "Slot A4 - City Mall Parking",
+
+      // This function runs automatically after a successful test payment
+      "handler": function (response) {
+        alert("Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
+        window.location.href = "confirmation.html";
+      },
+
+      // Pre-fills the popup with dummy user details (optional)
+      "prefill": {
+        "name": "Smriti Sarkar",
+        "email": "test@example.com",
+        "contact": "9999999999"
+      },
+
+      "theme": {
+        "color": "#2c5f8a"
+      }
+    };
+
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+
+    e.preventDefault();
+  };
+</script>
+
+</body>
+</html>

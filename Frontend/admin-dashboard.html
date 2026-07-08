@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard - Parking Slot Booking System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="navbar">
+    <h1>Parking Slot Booking System - Admin</h1>
+    <nav>
+      <a href="admin-login.html">Logout</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <h2>Admin Dashboard</h2>
+
+  <div class="info-box">
+    <h3>Overview</h3>
+    <table>
+      <tr>
+        <th>Total Parking Locations</th>
+        <td>3</td>
+      </tr>
+      <tr>
+        <th>Total Slots</th>
+        <td>36</td>
+      </tr>
+      <tr>
+        <th>Slots Booked Today</th>
+        <td>14</td>
+      </tr>
+      <tr>
+        <th>Total Registered Users</th>
+        <td>58</td>
+      </tr>
+      <tr>
+        <th>Revenue Today</th>
+        <td>Rs. 1,240</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3 style="margin-top:25px;">Manage Parking Locations</h3>
+  <table>
+    <tr>
+      <th>Location Name</th>
+      <th>Total Slots</th>
+      <th>Available</th>
+      <th>Action</th>
+    </tr>
+    <tr>
+      <td>City Mall Parking</td>
+      <td>12</td>
+      <td>7</td>
+      <td><a href="#">Edit</a></td>
+    </tr>
+    <tr>
+      <td>Railway Station Parking</td>
+      <td>14</td>
+      <td>5</td>
+      <td><a href="#">Edit</a></td>
+    </tr>
+    <tr>
+      <td>ADTU Campus Parking</td>
+      <td>10</td>
+      <td>10</td>
+      <td><a href="#">Edit</a></td>
+    </tr>
+  </table>
+  <a href="#" class="btn">+ Add New Parking Location</a>
+
+  <h3 style="margin-top:25px;">Recent Bookings</h3>
+  <table>
+    <tr>
+      <th>Booking ID</th>
+      <th>User</th>
+      <th>Facility</th>
+      <th>Slot</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td>PB1024</td>
+      <td>Smriti Sarkar</td>
+      <td>City Mall Parking</td>
+      <td>A4</td>
+      <td>Confirmed</td>
+    </tr>
+    <tr>
+      <td>PB1023</td>
+      <td>Rahul Das</td>
+      <td>Railway Station Parking</td>
+      <td>C2</td>
+      <td>Confirmed</td>
+    </tr>
+  </table>
+
+  <p class="small-note">This dashboard will be connected to MongoDB in the next phase to show live data and reports.</p>
+</div>
+
+<footer>
+  &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Bookings - Parking Slot Booking System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="navbar">
+    <h1>Parking Slot Booking System</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="history.html">My Bookings</a>
+      <a href="login.html">Logout</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <h2>My Booking History</h2>
+
+  <table>
+    <tr>
+      <th>Booking ID</th>
+      <th>Facility</th>
+      <th>Slot</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+    <tr>
+      <td>PB1024</td>
+      <td>City Mall Parking</td>
+      <td>A4</td>
+      <td>08-07-2026</td>
+      <td>Upcoming</td>
+      <td><a href="#">Cancel</a> / <a href="#">Extend</a></td>
+    </tr>
+    <tr>
+      <td>PB0987</td>
+      <td>Railway Station Parking</td>
+      <td>C2</td>
+      <td>01-07-2026</td>
+      <td>Completed</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>PB0873</td>
+      <td>ADTU Campus Parking</td>
+      <td>D1</td>
+      <td>25-06-2026</td>
+      <td>Cancelled</td>
+      <td>-</td>
+    </tr>
+  </table>
+
+  <p class="small-note">Cancel and Extend Booking options will be made functional once the backend (Node.js + Express + MongoDB) is connected.</p>
+</div>
+
+<footer>
+  &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>View Slots - Parking Slot Booking System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="navbar">
+    <h1>Parking Slot Booking System</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="history.html">My Bookings</a>
+      <a href="login.html">Logout</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <h2>City Mall Parking - Slot Availability</h2>
+  <p>Green = Available, Red = Already Booked. Click on an available slot to select it.</p>
+
+  <div class="slot-grid">
+    <div class="slot available">A1</div>
+    <div class="slot booked">A2</div>
+    <div class="slot available">A3</div>
+    <div class="slot selected">A4</div>
+    <div class="slot available">A5</div>
+    <div class="slot booked">A6</div>
+    <div class="slot available">B1</div>
+    <div class="slot available">B2</div>
+    <div class="slot booked">B3</div>
+    <div class="slot available">B4</div>
+    <div class="slot available">B5</div>
+    <div class="slot booked">B6</div>
+  </div>
+
+  <div class="info-box">
+    <h3>Selected Slot Details</h3>
+    <p><strong>Slot:</strong> A4</p>
+    <p><strong>Price:</strong> Rs. 20 / hour</p>
+
+    <form action="payment.html">
+      <div class="form-group">
+        <label for="duration">Duration (in hours)</label>
+        <input type="number" id="duration" name="duration" value="2" min="1">
+      </div>
+      <button type="submit">Proceed to Payment</button>
+    </form>
+  </div>
+</div>
+
+<footer>
+  &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
+</footer>
+
+</body>
+</html>

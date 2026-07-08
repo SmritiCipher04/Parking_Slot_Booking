@@ -1,0 +1,216 @@
+/* Parking Slot Booking System - style.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f2f2f2;
+  color: #333333;
+}
+
+/* ---- Header / Navbar ---- */
+header {
+  background-color: #2c5f8a;
+  color: white;
+  padding: 15px 20px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navbar h1 {
+  font-size: 22px;
+}
+
+.navbar nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 15px;
+  font-size: 15px;
+}
+
+.navbar nav a:hover {
+  text-decoration: underline;
+}
+
+/* ---- Container ---- */
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  background-color: #ffffff;
+  padding: 25px;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+}
+
+h2 {
+  color: #2c5f8a;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #2c5f8a;
+  padding-bottom: 5px;
+}
+
+h3 {
+  color: #2c5f8a;
+  margin-bottom: 10px;
+}
+
+p {
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* ---- Forms ---- */
+form {
+  margin-top: 15px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #aaaaaa;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+button,
+.btn {
+  background-color: #2c5f8a;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 3px;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 5px;
+}
+
+button:hover,
+.btn:hover {
+  background-color: #1e4a6d;
+}
+
+.btn-secondary {
+  background-color: #777777;
+}
+
+.btn-secondary:hover {
+  background-color: #555555;
+}
+
+/* ---- Tables ---- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table, th, td {
+  border: 1px solid #cccccc;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background-color: #e6eef4;
+}
+
+/* ---- Slot boxes ---- */
+.slot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.slot {
+  width: 80px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #999999;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.slot.available {
+  background-color: #d9f2d9;
+}
+
+.slot.booked {
+  background-color: #f2d9d9;
+  cursor: not-allowed;
+  color: #999999;
+}
+
+.slot.selected {
+  background-color: #2c5f8a;
+  color: white;
+}
+
+/* ---- Info box ---- */
+.info-box {
+  background-color: #f8f8f8;
+  border: 1px dashed #aaaaaa;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 3px;
+}
+
+/* ---- Footer ---- */
+footer {
+  text-align: center;
+  padding: 15px;
+  font-size: 13px;
+  color: #666666;
+  margin-top: 30px;
+}
+
+/* ---- Simple link list ---- */
+.link-list a {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c5f8a;
+}
+
+.center-text {
+  text-align: center;
+}
+
+.small-note {
+  font-size: 13px;
+  color: #777777;
+  margin-top: 8px;
+}
