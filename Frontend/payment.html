@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Payment - Parking Slot Booking System</title>
+<title>Payment - ExcuseME</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
   <div class="navbar">
-    <h1>Parking Slot Booking System</h1>
+    <h1>ExcuseME</h1>
     <nav>
       <a href="index.html">Home</a>
       <a href="history.html">My Bookings</a>
@@ -61,13 +61,30 @@
 
 <!-- Step 1: Load Razorpay's checkout script -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  window.RAZORPAY_KEY_READY = (async function () {
+    try {
+      const response = await fetch('.env');
+      if (!response.ok) throw new Error('Unable to read .env');
+
+      const text = await response.text();
+      const match = text.match(/^RAZORPAY_PUBLIC_KEY\s*=\s*(.+)$/m);
+      if (match) {
+        window.RAZORPAY_PUBLIC_KEY = match[1].trim().replace(/^['"]|['"]$/g, '');
+      }
+    } catch (error) {
+      console.warn('Razorpay key could not be loaded from .env:', error);
+    }
+  })();
+</script>
 
 <!-- Step 2: Open Razorpay's payment popup when the button is clicked -->
 <script>
-  document.getElementById('rzp-button').onclick = function (e) {
+  document.getElementById('rzp-button').onclick = async function (e) {
+    await window.RAZORPAY_KEY_READY;
 
     var options = {
-      "key": "rzp_test_TAyTdm1bjJolB1",
+      "key": window.RAZORPAY_PUBLIC_KEY || "rzp_test_TAyTdm1bjJolB1",
 
       "amount": "4000",        // Amount is in paise. 4000 paise = Rs. 40
       "currency": "INR",

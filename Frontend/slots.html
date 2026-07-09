@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>View Slots - Parking Slot Booking System</title>
+<title>View Slots - ExcuseME</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
   <div class="navbar">
-    <h1>Parking Slot Booking System</h1>
+    <h1>ExcuseME</h1>
     <nav>
       <a href="index.html">Home</a>
       <a href="history.html">My Bookings</a>
@@ -26,7 +26,7 @@
     <div class="slot available">A1</div>
     <div class="slot booked">A2</div>
     <div class="slot available">A3</div>
-    <div class="slot selected">A4</div>
+    <div class="slot available">A4</div>
     <div class="slot available">A5</div>
     <div class="slot booked">A6</div>
     <div class="slot available">B1</div>
@@ -39,15 +39,15 @@
 
   <div class="info-box">
     <h3>Selected Slot Details</h3>
-    <p><strong>Slot:</strong> A4</p>
-    <p><strong>Price:</strong> Rs. 20 / hour</p>
+    <p><strong>Slot:</strong> <span id="selected-slot-display">None</span></p>
+    <p><strong>Price:</strong> <span id="selected-price-display">Rs. 20 / hour</span></p>
 
     <form action="payment.html">
       <div class="form-group">
         <label for="duration">Duration (in hours)</label>
         <input type="number" id="duration" name="duration" value="2" min="1">
       </div>
-      <button type="submit">Proceed to Payment</button>
+      <button type="submit" id="submit-btn" disabled>Proceed to Payment</button>
     </form>
   </div>
 </div>
@@ -55,6 +55,44 @@
 <footer>
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
+
+<script>
+  const slots = document.querySelectorAll('.slot');
+  const slotDisplay = document.getElementById('selected-slot-display');
+  const submitBtn = document.getElementById('submit-btn');
+
+  slots.forEach(slot => {
+    slot.addEventListener('click', () => {
+      // Booked slots are non-interactive
+      if (slot.classList.contains('booked')) {
+        return;
+      }
+
+      // If clicked slot is already selected, deselect it
+      if (slot.classList.contains('selected')) {
+        slot.classList.remove('selected');
+        slot.classList.add('available');
+        slotDisplay.textContent = 'None';
+        if (submitBtn) submitBtn.disabled = true;
+        return;
+      }
+
+      // Deselect previously selected slot
+      slots.forEach(s => {
+        if (s.classList.contains('selected')) {
+          s.classList.remove('selected');
+          s.classList.add('available');
+        }
+      });
+
+      // Select new slot
+      slot.classList.remove('available');
+      slot.classList.add('selected');
+      slotDisplay.textContent = slot.textContent.trim();
+      if (submitBtn) submitBtn.disabled = false;
+    });
+  });
+</script>
 
 </body>
 </html>
