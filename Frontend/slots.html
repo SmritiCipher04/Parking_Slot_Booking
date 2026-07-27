@@ -2,52 +2,79 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>View Slots - ExcuseME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slot Availability - ExcuseME Parking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="navbar">
-    <h1>ExcuseME</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="history.html">My Bookings</a>
-      <a href="login.html">Logout</a>
-    </nav>
-  </div>
-</header>
+<header></header>
 
 <div class="container">
-  <h2>City Mall Parking - Slot Availability</h2>
-  <p>Green = Available, Red = Already Booked. Click on an available slot to select it.</p>
+  <div class="form-group" style="margin-bottom: 24px;">
+    <label for="facility-select">Select Parking Location / Facility</label>
+    <select id="facility-select" style="font-weight: 600;">
+      <!-- Populated dynamically via slots-page.js -->
+    </select>
+  </div>
 
-  <div class="slot-grid">
-    <div class="slot available">A1</div>
-    <div class="slot booked">A2</div>
-    <div class="slot available">A3</div>
-    <div class="slot available">A4</div>
-    <div class="slot available">A5</div>
-    <div class="slot booked">A6</div>
-    <div class="slot available">B1</div>
-    <div class="slot available">B2</div>
-    <div class="slot booked">B3</div>
-    <div class="slot available">B4</div>
-    <div class="slot available">B5</div>
-    <div class="slot booked">B6</div>
+  <h2 id="facility-title">Slot Availability</h2>
+  <p class="subtitle">Click on an available (green) slot to select it for your booking.</p>
+
+  <!-- Slot Legend -->
+  <div class="slot-legend">
+    <div class="legend-item">
+      <div class="legend-box" style="background-color: var(--status-available-bg); border-color: var(--status-available-border);"></div>
+      <span>Available</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box" style="background-color: var(--status-booked-bg); border-color: var(--status-booked-border);"></div>
+      <span>Occupied / Booked</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box" style="background-color: var(--status-reserved-bg); border-color: var(--status-reserved-border);"></div>
+      <span>Reserved</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box" style="background-color: var(--status-selected-bg); border-color: var(--status-selected-border);"></div>
+      <span>Selected</span>
+    </div>
+  </div>
+
+  <!-- 20-Slot Grid -->
+  <div class="slot-grid" id="slot-grid">
+    <!-- Rendered via slots-page.js -->
   </div>
 
   <div class="info-box">
-    <h3>Selected Slot Details</h3>
-    <p><strong>Slot:</strong> <span id="selected-slot-display">None</span></p>
-    <p><strong>Price:</strong> <span id="selected-price-display">Rs. 20 / hour</span></p>
-
-    <form action="payment.html">
-      <div class="form-group">
-        <label for="duration">Duration (in hours)</label>
-        <input type="number" id="duration" name="duration" value="2" min="1">
+    <h3>Selected Slot & Duration</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0;">
+      <div>
+        <span style="color: var(--text-secondary); font-size: 13px;">Selected Facility:</span>
+        <div id="selected-facility-display" style="font-weight: 700; font-size: 16px;">City Mall Parking</div>
       </div>
-      <button type="submit" id="submit-btn" disabled>Proceed to Payment</button>
+      <div>
+        <span style="color: var(--text-secondary); font-size: 13px;">Selected Slot:</span>
+        <div id="selected-slot-display" style="font-weight: 700; font-size: 16px; color: var(--primary-blue);">None</div>
+      </div>
+      <div>
+        <span style="color: var(--text-secondary); font-size: 13px;">Rate per Hour:</span>
+        <div id="selected-price-display" style="font-weight: 700; font-size: 16px;">Rs. 20 / hr</div>
+      </div>
+    </div>
+
+    <form id="booking-form" onsubmit="return false;" style="margin-top: 16px;">
+      <div class="form-group">
+        <label for="duration">Duration (Hours)</label>
+        <input type="number" id="duration" name="duration" value="2" min="1" max="24" required>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; background-color: #ffffff; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+        <span style="font-weight: 600;">Estimated Total:</span>
+        <span id="estimated-total-display" style="font-size: 20px; font-weight: 800; color: var(--primary-blue);">Rs. 40</span>
+      </div>
+
+      <button type="button" id="submit-btn" class="btn" style="width: 100%;" disabled>Proceed to Payment</button>
     </form>
   </div>
 </div>
@@ -56,43 +83,9 @@
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
-<script>
-  const slots = document.querySelectorAll('.slot');
-  const slotDisplay = document.getElementById('selected-slot-display');
-  const submitBtn = document.getElementById('submit-btn');
-
-  slots.forEach(slot => {
-    slot.addEventListener('click', () => {
-      // Booked slots are non-interactive
-      if (slot.classList.contains('booked')) {
-        return;
-      }
-
-      // If clicked slot is already selected, deselect it
-      if (slot.classList.contains('selected')) {
-        slot.classList.remove('selected');
-        slot.classList.add('available');
-        slotDisplay.textContent = 'None';
-        if (submitBtn) submitBtn.disabled = true;
-        return;
-      }
-
-      // Deselect previously selected slot
-      slots.forEach(s => {
-        if (s.classList.contains('selected')) {
-          s.classList.remove('selected');
-          s.classList.add('available');
-        }
-      });
-
-      // Select new slot
-      slot.classList.remove('available');
-      slot.classList.add('selected');
-      slotDisplay.textContent = slot.textContent.trim();
-      if (submitBtn) submitBtn.disabled = false;
-    });
-  });
-</script>
-
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/slots-page.js"></script>
 </body>
 </html>

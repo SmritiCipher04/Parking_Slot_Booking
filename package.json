@@ -1,0 +1,22 @@
+{
+  "name": "parking-slot-booking",
+  "version": "1.0.0",
+  "description": "Full Stack Parking Slot Booking System (ExcuseME) with Razorpay Payment Integration",
+  "main": "Backend/server.js",
+  "scripts": {
+    "start": "node Backend/server.js",
+    "server": "node Backend/server.js",
+    "dev": "nodemon Backend/server.js",
+    "install-backend": "cd Backend && npm install"
+  },
+  "keywords": [
+    "parking",
+    "booking",
+    "razorpay",
+    "fullstack",
+    "express",
+    "javascript"
+  ],
+  "author": "Smriti Sarkar",
+  "license": "ISC"
+}

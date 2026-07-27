@@ -2,66 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Booking Confirmed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking Confirmation - ExcuseME Parking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="navbar">
-    <h1>ExcuseMe</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="history.html">My Bookings</a>
-      <a href="login.html">Logout</a>
-    </nav>
-  </div>
-</header>
+<header></header>
 
-<div class="container center-text">
+<div class="container" style="max-width: 600px; text-align: center;">
+  <div style="font-size: 48px; margin-bottom: 8px;">✅</div>
   <h2>Booking Confirmed!</h2>
-  <p>Your parking slot has been booked successfully. Show the PIN below at the entry gate.</p>
+  <p class="subtitle">Your parking slot has been successfully reserved.</p>
 
-  <div class="info-box">
-    <h3>Entry PIN</h3>
-    <p style="font-size: 28px; font-weight: bold; letter-spacing: 3px;">4 7 2 9</p>
-    <p class="small-note">(In the final version, a scannable QR code will also be generated here for entry.)</p>
+  <div style="background-color: var(--primary-light); border: 2px dashed var(--primary-blue); padding: 20px; border-radius: 12px; margin: 24px 0;">
+    <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Security Entrance PIN</div>
+    <div id="conf-pin" style="font-size: 36px; font-weight: 900; letter-spacing: 0.2em; color: var(--primary-blue); margin: 6px 0;">PIN-8492</div>
+    <div style="font-size: 12px; color: var(--text-secondary);">Present this security PIN upon arrival at the parking gate entrance.</div>
   </div>
 
-  <table style="text-align:left;">
-    <tr>
-      <th>Booking ID</th>
-      <td>PB1024</td>
-    </tr>
-    <tr>
-      <th>Facility</th>
-      <td>City Mall Parking</td>
-    </tr>
-    <tr>
-      <th>Slot</th>
-      <td>A4</td>
-    </tr>
-    <tr>
-      <th>Date</th>
-      <td>08-07-2026</td>
-    </tr>
-    <tr>
-      <th>Duration</th>
-      <td>2 hours</td>
-    </tr>
-    <tr>
-      <th>Amount Paid</th>
-      <td>Rs. 40</td>
-    </tr>
-  </table>
+  <div style="text-align: left; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; margin-bottom: 24px;">
+    <h3 style="font-size: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Reservation Summary</h3>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Booking ID:</span>
+      <strong id="conf-booking-id">BK1001</strong>
+    </div>
 
-  <a href="history.html" class="btn">View My Bookings</a>
-  <a href="index.html" class="btn btn-secondary">Back to Home</a>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Facility Name:</span>
+      <strong id="conf-facility">City Mall Parking</strong>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Reserved Slot:</span>
+      <strong id="conf-slot" style="color: var(--primary-blue);">A4</strong>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Booking Date:</span>
+      <span id="conf-date">2026-07-23</span>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Duration:</span>
+      <span id="conf-duration">2 hours</span>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Payment Status:</span>
+      <span class="badge badge-success">COMPLETED</span>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+      <span style="font-weight: 600;">Total Paid:</span>
+      <strong id="conf-amount" style="color: var(--primary-blue); font-size: 18px;">Rs. 40</strong>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+    <a href="history.html" class="btn">📋 View My Bookings</a>
+    <a href="slots.html" class="btn btn-secondary">➕ Book Another Slot</a>
+  </div>
 </div>
 
 <footer>
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/confirmation-page.js"></script>
 </body>
 </html>

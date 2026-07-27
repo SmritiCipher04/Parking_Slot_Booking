@@ -2,46 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Login - ExcuseME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Login - ExcuseME Parking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="navbar">
-    <h1>ExcuseME</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="login.html">Login</a>
-      <a href="register.html">Register</a>
-      <a href="admin-login.html">Admin</a>
-    </nav>
-  </div>
-</header>
+<header></header>
 
-<div class="container">
+<div class="container auth-container">
   <h2>User Login</h2>
+  <p class="subtitle">Access your parking bookings and reserve slots easily.</p>
 
-  <form action="slots.html">
+  <form id="login-form">
     <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" value="smriti@example.com" placeholder="name@example.com" required>
     </div>
 
     <div class="form-group">
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      <input type="password" id="password" name="password" value="password123" placeholder="Enter your password" required>
     </div>
 
-    <button type="submit">Login</button>
+    <button type="submit" class="btn" style="width: 100%;">Sign In to Book Slots</button>
   </form>
 
-  <p class="small-note">Don't have an account? <a href="register.html">Register here</a></p>
+  <p class="small-note">Don't have an account yet? <a href="register.html">Create a free account</a></p>
+  <p class="small-note" style="margin-top: 10px;">Are you a system administrator? <a href="admin-login.html">Login as Admin</a></p>
 </div>
 
 <footer>
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/login-page.js"></script>
 </body>
 </html>

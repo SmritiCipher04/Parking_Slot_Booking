@@ -2,81 +2,57 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ExcuseME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home - ExcuseME Parking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="navbar">
-    <h1>ExcuseME</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="login.html">Login</a>
-      <a href="register.html">Register</a>
-      <a href="admin-login.html">Admin</a>
-    </nav>
-  </div>
-</header>
+<header></header>
 
 <div class="container">
-  <h2>Find Parking Near You</h2>
-  <p>
-    Welcome to the Parking Slot Booking System. This project helps users
-    search for nearby parking facilities, check real-time slot availability,
-    book a slot in advance and make payments online, instead of manually
-    searching for a vacant parking space.
-  </p>
+  <h2 id="welcome-heading">Find Parking Near You</h2>
+  <p class="subtitle">Search for nearby parking facilities, view real-time slot availability, and book slots in advance.</p>
 
-  <form action="slots.html">
-    <div class="form-group">
-      <label for="location">Enter Location</label>
-      <input type="text" id="location" name="location" placeholder="e.g. City Mall, Guwahati">
+  <!-- Facility Search Form -->
+  <form id="search-form" onsubmit="return false;" style="margin-bottom: 32px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="search-location">Location / Facility</label>
+        <input type="text" id="search-location" placeholder="e.g. City Mall, Guwahati">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="search-date">Date</label>
+        <input type="date" id="search-date">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="search-time">Arrival Time</label>
+        <input type="time" id="search-time">
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="date">Date</label>
-      <input type="date" id="date" name="date">
-    </div>
-
-    <div class="form-group">
-      <label for="time">Time</label>
-      <input type="time" id="time" name="time">
-    </div>
-
-    <button type="submit">Search Parking</button>
+    <button type="button" id="search-btn" class="btn" style="margin-top: 16px;">🔍 Search Facilities</button>
   </form>
 
   <div class="info-box">
-    <h3>Available Parking Facilities (Demo)</h3>
-    <table>
-      <tr>
-        <th>Facility Name</th>
-        <th>Location</th>
-        <th>Available Slots</th>
-        <th>Price/Hour</th>
-      </tr>
-      <tr>
-        <td>City Mall Parking</td>
-        <td>Guwahati</td>
-        <td>12</td>
-        <td>Rs. 20</td>
-      </tr>
-      <tr>
-        <td>Railway Station Parking</td>
-        <td>Guwahati</td>
-        <td>5</td>
-        <td>Rs. 15</td>
-      </tr>
-      <tr>
-        <td>ADTU Campus Parking</td>
-        <td>Sonapur</td>
-        <td>20</td>
-        <td>Free</td>
-      </tr>
+    <h3>Available Parking Facilities</h3>
+    <p style="margin-bottom: 12px; font-size: 14px;">Select a facility below to view slot-wise availability (20 slots per location):</p>
+    
+    <table id="facilities-table">
+      <thead>
+        <tr>
+          <th>Facility Name</th>
+          <th>Location</th>
+          <th>Total Slots</th>
+          <th>Price / Hour</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamically rendered via home-page.js -->
+      </tbody>
     </table>
-    <p class="small-note">Click "View Slots" below to see slot-wise availability for a facility.</p>
-    <a href="slots.html" class="btn">View Slots</a>
   </div>
 </div>
 
@@ -84,5 +60,9 @@
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/home-page.js"></script>
 </body>
 </html>

@@ -2,119 +2,122 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Payment - ExcuseME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment - ExcuseME Parking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="navbar">
-    <h1>ExcuseME</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="history.html">My Bookings</a>
-      <a href="login.html">Logout</a>
-    </nav>
-  </div>
-</header>
+<header></header>
 
 <div class="container">
-  <h2>Booking Summary & Payment</h2>
+  <h2>Booking Summary & Checkout</h2>
+  <p class="subtitle">Review your slot reservation details and complete payment to confirm your booking.</p>
 
   <table>
     <tr>
-      <th>Facility</th>
-      <td>City Mall Parking</td>
+      <th>Parking Facility</th>
+      <td id="summary-facility">City Mall Parking</td>
     </tr>
     <tr>
-      <th>Slot</th>
-      <td>A4</td>
+      <th>Selected Slot Number</th>
+      <td id="summary-slot">A4</td>
     </tr>
     <tr>
-      <th>Date</th>
-      <td>08-07-2026</td>
+      <th>Reservation Date</th>
+      <td id="summary-date">2026-07-23</td>
     </tr>
     <tr>
       <th>Duration</th>
-      <td>2 hours</td>
+      <td id="summary-duration">2 hours</td>
     </tr>
     <tr>
-      <th>Rate</th>
-      <td>Rs. 20 / hour</td>
+      <th>Hourly Rate</th>
+      <td id="summary-rate">Rs. 20 / hour</td>
     </tr>
     <tr>
-      <th>Total Amount</th>
-      <td><strong>Rs. 40</strong></td>
+      <th>Total Payable Amount</th>
+      <td><strong id="summary-total" style="color: var(--primary-blue); font-size: 18px;">Rs. 40</strong></td>
     </tr>
   </table>
 
-  <h3 style="margin-top:20px;">Payment</h3>
-  <p>Click the button below to pay using Razorpay. This is Test Mode, so no real money is charged.</p>
+  <h3 style="margin-top: 28px;">Select Payment Option</h3>
+  <p style="font-size: 14px;">Choose Razorpay (Test Mode) or use our built-in offline simulator to complete your transaction:</p>
 
-  <button id="rzp-button" class="btn">Pay Rs. 40 with Razorpay</button>
-  <p class="small-note">Payments are processed securely through Razorpay (Test Mode, for demo purposes).</p>
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+    <button id="rzp-button" class="btn" style="padding: 12px 24px; font-size: 15px;">
+      💳 Pay with Razorpay (Test Mode)
+    </button>
+    
+    <button id="sim-button" class="btn btn-secondary" style="padding: 12px 24px; font-size: 15px;">
+      ⚡ Pay via Local Simulator (Offline Fallback)
+    </button>
+  </div>
+
+  <p class="small-note" style="margin-top: 20px;">Transactions are encrypted and recorded securely into your local account history.</p>
+</div>
+
+<!-- Fallback Dummy Payment Modal -->
+<div id="payment-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="margin-bottom: 0;">ExcuseME Payment Simulator</h3>
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+    </div>
+
+    <div style="background-color: var(--primary-light); border: 1px solid var(--border-focus); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
+      <strong>Note:</strong> Simulating payment authorization locally.
+    </div>
+
+    <div style="margin-bottom: 20px; background-color: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <span style="color: var(--text-secondary);">Facility:</span>
+        <strong id="modal-facility">City Mall Parking</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <span style="color: var(--text-secondary);">Slot:</span>
+        <strong id="modal-slot">A4</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-secondary);">Total Amount:</span>
+        <strong id="modal-total" style="color: var(--primary-blue);">Rs. 40</strong>
+      </div>
+    </div>
+
+    <form id="dummy-payment-form" onsubmit="return false;">
+      <div class="form-group">
+        <label for="card-number">Card Number (Dummy)</label>
+        <input type="text" id="card-number" value="4111 1111 1111 1111" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label for="card-expiry">Expiry Date</label>
+          <input type="text" id="card-expiry" value="12/29" required>
+        </div>
+        <div class="form-group">
+          <label for="card-cvv">CVV</label>
+          <input type="password" id="card-cvv" value="123" required>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 12px;">
+        <button type="button" id="modal-submit-btn" class="btn" style="flex: 1;">Authorize Payment</button>
+        <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <footer>
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
-<!-- Step 1: Load Razorpay's checkout script -->
+<!-- Razorpay Checkout SDK -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-  window.RAZORPAY_KEY_READY = (async function () {
-    try {
-      const response = await fetch('.env');
-      if (!response.ok) throw new Error('Unable to read .env');
-
-      const text = await response.text();
-      const match = text.match(/^RAZORPAY_PUBLIC_KEY\s*=\s*(.+)$/m);
-      if (match) {
-        window.RAZORPAY_PUBLIC_KEY = match[1].trim().replace(/^['"]|['"]$/g, '');
-      }
-    } catch (error) {
-      console.warn('Razorpay key could not be loaded from .env:', error);
-    }
-  })();
-</script>
-
-<!-- Step 2: Open Razorpay's payment popup when the button is clicked -->
-<script>
-  document.getElementById('rzp-button').onclick = async function (e) {
-    await window.RAZORPAY_KEY_READY;
-
-    var options = {
-      "key": window.RAZORPAY_PUBLIC_KEY,
-
-      "amount": "4000",        // Amount is in paise. 4000 paise = Rs. 40
-      "currency": "INR",
-      "name": "Parking Slot Booking System",
-      "description": "Slot A4 - City Mall Parking",
-
-      // This function runs automatically after a successful test payment
-      "handler": function (response) {
-        alert("Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
-        window.location.href = "confirmation.html";
-      },
-
-      // Pre-fills the popup with dummy user details (optional)
-      "prefill": {
-        "name": "Smriti Sarkar",
-        "email": "test@example.com",
-        "contact": "9999999999"
-      },
-
-      "theme": {
-        "color": "#2c5f8a"
-      }
-    };
-
-    var rzp1 = new Razorpay(options);
-    rzp1.open();
-
-    e.preventDefault();
-  };
-</script>
-
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/payment-page.js"></script>
 </body>
 </html>

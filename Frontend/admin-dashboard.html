@@ -2,109 +2,154 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Dashboard - ExcuseME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - ExcuseME Parking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="navbar">
-    <h1>ExcuseME - Admin</h1>
-    <nav>
-      <a href="admin-login.html">Logout</a>
-    </nav>
+<header></header>
+
+<div class="container" style="max-width: 1200px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+      <h2>🛡️ Admin Control Dashboard</h2>
+      <p class="subtitle" style="margin-bottom: 0;">Overview statistics, parking facility management, user accounts, and system revenue.</p>
+    </div>
+    <button id="admin-logout-btn" class="btn btn-secondary" style="color: #ef4444; border-color: #fecaca;">
+      🚪 Admin Logout
+    </button>
   </div>
-</header>
 
-<div class="container">
-  <h2>Admin Dashboard</h2>
+  <!-- Stat Cards -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <h4>Total System Revenue</h4>
+      <div class="stat-value" id="stat-revenue">Rs. 0</div>
+    </div>
+    <div class="stat-card">
+      <h4>Total Bookings Made</h4>
+      <div class="stat-value" id="stat-bookings">0</div>
+    </div>
+    <div class="stat-card">
+      <h4>Registered Users</h4>
+      <div class="stat-value" id="stat-users">0</div>
+    </div>
+    <div class="stat-card">
+      <h4>Active Facilities</h4>
+      <div class="stat-value" id="stat-facilities">0</div>
+    </div>
+  </div>
 
-  <div class="info-box">
-    <h3>Overview</h3>
-    <table>
-      <tr>
-        <th>Total Parking Locations</th>
-        <td>3</td>
-      </tr>
-      <tr>
-        <th>Total Slots</th>
-        <td>36</td>
-      </tr>
-      <tr>
-        <th>Slots Booked Today</th>
-        <td>14</td>
-      </tr>
-      <tr>
-        <th>Total Registered Users</th>
-        <td>58</td>
-      </tr>
-      <tr>
-        <th>Revenue Today</th>
-        <td>Rs. 1,240</td>
-      </tr>
+  <!-- Location Management Section -->
+  <div class="info-box" style="margin-bottom: 32px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="margin-bottom: 0;">Manage Parking Locations</h3>
+      <button id="add-location-btn" class="btn btn-sm">➕ Add New Parking Facility</button>
+    </div>
+
+    <table id="admin-facilities-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Facility Name</th>
+          <th>Location</th>
+          <th>Total Slots</th>
+          <th>Rate / Hour</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic -->
+      </tbody>
     </table>
   </div>
 
-  <h3 style="margin-top:25px;">Manage Parking Locations</h3>
-  <table>
-    <tr>
-      <th>Location Name</th>
-      <th>Total Slots</th>
-      <th>Available</th>
-      <th>Action</th>
-    </tr>
-    <tr>
-      <td>City Mall Parking</td>
-      <td>12</td>
-      <td>7</td>
-      <td><a href="#">Edit</a></td>
-    </tr>
-    <tr>
-      <td>Railway Station Parking</td>
-      <td>14</td>
-      <td>5</td>
-      <td><a href="#">Edit</a></td>
-    </tr>
-    <tr>
-      <td>ADTU Campus Parking</td>
-      <td>10</td>
-      <td>10</td>
-      <td><a href="#">Edit</a></td>
-    </tr>
-  </table>
-  <a href="#" class="btn">+ Add New Parking Location</a>
+  <!-- Master Bookings List Section -->
+  <div class="info-box" style="margin-bottom: 32px;">
+    <h3>Master Bookings Overview</h3>
+    <table id="admin-bookings-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>User Email</th>
+          <th>Facility</th>
+          <th>Slot</th>
+          <th>Date</th>
+          <th>Duration</th>
+          <th>Amount Paid</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic -->
+      </tbody>
+    </table>
+  </div>
 
-  <h3 style="margin-top:25px;">Recent Bookings</h3>
-  <table>
-    <tr>
-      <th>Booking ID</th>
-      <th>User</th>
-      <th>Facility</th>
-      <th>Slot</th>
-      <th>Status</th>
-    </tr>
-    <tr>
-      <td>PB1024</td>
-      <td>Smriti Sarkar</td>
-      <td>City Mall Parking</td>
-      <td>A4</td>
-      <td>Confirmed</td>
-    </tr>
-    <tr>
-      <td>PB1023</td>
-      <td>Rahul Das</td>
-      <td>Railway Station Parking</td>
-      <td>C2</td>
-      <td>Confirmed</td>
-    </tr>
-  </table>
+  <!-- Registered Users Section -->
+  <div class="info-box">
+    <h3>Registered Platform Users</h3>
+    <table id="admin-users-table">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Full Name</th>
+          <th>Email Address</th>
+          <th>Phone</th>
+          <th>Account Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic -->
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <p class="small-note">This dashboard will be connected to MongoDB in the next phase to show live data and reports.</p>
+<!-- Modal for Adding New Parking Location -->
+<div id="facility-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add New Parking Facility</h3>
+      <button class="modal-close" id="fac-modal-close-btn">&times;</button>
+    </div>
+
+    <form id="add-facility-form" onsubmit="return false;">
+      <div class="form-group">
+        <label for="fac-name">Facility Name</label>
+        <input type="text" id="fac-name" placeholder="e.g. Paltan Bazaar Complex" required>
+      </div>
+
+      <div class="form-group">
+        <label for="fac-location">Location / City</label>
+        <input type="text" id="fac-location" placeholder="e.g. Guwahati" required>
+      </div>
+
+      <div class="form-group">
+        <label for="fac-slots">Total Slots (Min 20)</label>
+        <input type="number" id="fac-slots" value="20" min="20" required>
+      </div>
+
+      <div class="form-group">
+        <label for="fac-rate">Hourly Rate (Rs.)</label>
+        <input type="number" id="fac-rate" value="20" min="5" required>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 16px;">
+        <button type="button" id="save-facility-btn" class="btn" style="flex: 1;">Save Facility</button>
+        <button type="button" id="fac-modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <footer>
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/admin-dashboard-page.js"></script>
 </body>
 </html>
