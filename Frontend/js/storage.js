@@ -5,12 +5,14 @@
  */
 
 const Storage = (() => {
-  const API_BASE = window.API_BASE_URL || '/api';
+  const getApiBase = () => window.API_BASE_URL || 'http://localhost:5000/api';
+
+  const KEYS = Auth.KEYS;
 
   // 1. Register User -> POST /api/users/register (bcrypt hash)
   const registerUser = async (userData) => {
     try {
-      const res = await fetch(`${API_BASE}/users/register`, {
+      const res = await fetch(`${getApiBase()}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -18,14 +20,44 @@ const Storage = (() => {
       return await res.json();
     } catch (err) {
       console.error('Registration API error:', err);
-      return { success: false, message: 'Server connection error.' };
+      return { success: false, message: 'Could not connect to backend server.' };
     }
   };
 
-  // 2. Update User Profile -> PUT /api/users/profile (JWT Protected)
+  // 2. Reset Password -> POST /api/users/reset-password (Forgot Password)
+  const resetPassword = async (resetData) => {
+    try {
+      const res = await fetch(`${getApiBase()}/users/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resetData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.error('Reset password API error:', err);
+      return { success: false, message: 'Could not connect to backend server.' };
+    }
+  };
+
+  // 3. Change Password -> PUT /api/users/change-password (Profile page)
+  const changePassword = async (passwordData) => {
+    try {
+      const res = await fetch(`${getApiBase()}/users/change-password`, {
+        method: 'PUT',
+        headers: Auth.getAuthHeaders(),
+        body: JSON.stringify(passwordData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.error('Change password API error:', err);
+      return { success: false, message: 'Could not connect to backend server.' };
+    }
+  };
+
+  // 4. Update User Profile -> PUT /api/users/profile (JWT Protected)
   const updateUserProfile = async (email, updatedFields) => {
     try {
-      const res = await fetch(`${API_BASE}/users/profile`, {
+      const res = await fetch(`${getApiBase()}/users/profile`, {
         method: 'PUT',
         headers: Auth.getAuthHeaders(),
         body: JSON.stringify(updatedFields)
@@ -41,14 +73,14 @@ const Storage = (() => {
       return data;
     } catch (err) {
       console.error('Profile update error:', err);
-      return { success: false, message: 'Server error.' };
+      return { success: false, message: 'Could not connect to backend server.' };
     }
   };
 
-  // 3. Admin: Get Registered Users -> GET /api/admin/users (Excludes passwords)
+  // 5. Admin: Get Registered Users -> GET /api/admin/users (Excludes passwords)
   const getUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/admin/users`, {
+      const res = await fetch(`${getApiBase()}/admin/users`, {
         headers: Auth.getAdminAuthHeaders()
       });
       const data = await res.json();
@@ -59,10 +91,10 @@ const Storage = (() => {
     }
   };
 
-  // 4. Get Locations -> GET /api/locations
+  // 6. Get Locations -> GET /api/locations
   const getFacilities = async () => {
     try {
-      const res = await fetch(`${API_BASE}/locations`);
+      const res = await fetch(`${getApiBase()}/locations`);
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
@@ -71,10 +103,10 @@ const Storage = (() => {
     }
   };
 
-  // 5. Admin: Create Location -> POST /api/admin/locations
+  // 7. Admin: Create Location -> POST /api/admin/locations
   const addFacility = async (locationData) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/locations`, {
+      const res = await fetch(`${getApiBase()}/admin/locations`, {
         method: 'POST',
         headers: Auth.getAdminAuthHeaders(),
         body: JSON.stringify(locationData)
@@ -82,14 +114,14 @@ const Storage = (() => {
       return await res.json();
     } catch (err) {
       console.error('Add location error:', err);
-      return { success: false, message: 'Server error creating location.' };
+      return { success: false, message: 'Server connection error.' };
     }
   };
 
-  // 6. Get Slots by Location -> GET /api/locations/:id/slots
+  // 8. Get Slots by Location -> GET /api/locations/:id/slots
   const getSlotsByFacility = async (locationId) => {
     try {
-      const res = await fetch(`${API_BASE}/locations/${encodeURIComponent(locationId)}/slots`);
+      const res = await fetch(`${getApiBase()}/locations/${encodeURIComponent(locationId)}/slots`);
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
@@ -98,11 +130,11 @@ const Storage = (() => {
     }
   };
 
-  // 7. Get User Bookings -> GET /api/bookings (User) or GET /api/admin/bookings (Admin)
+  // 9. Get User Bookings -> GET /api/bookings (User) or GET /api/admin/bookings (Admin)
   const getBookings = async (userEmail = null) => {
     try {
       const isAdmin = !!Auth.getAdminToken();
-      const url = isAdmin ? `${API_BASE}/admin/bookings` : `${API_BASE}/bookings`;
+      const url = isAdmin ? `${getApiBase()}/admin/bookings` : `${getApiBase()}/bookings`;
       const headers = isAdmin ? Auth.getAdminAuthHeaders() : Auth.getAuthHeaders();
 
       const res = await fetch(url, { headers });
@@ -114,24 +146,24 @@ const Storage = (() => {
     }
   };
 
-  // 8. Cancel Booking -> PUT /api/bookings/:id/cancel
+  // 10. Cancel Booking -> PUT /api/bookings/:id/cancel
   const cancelBooking = async (bookingId) => {
     try {
-      const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}/cancel`, {
+      const res = await fetch(`${getApiBase()}/bookings/${encodeURIComponent(bookingId)}/cancel`, {
         method: 'PUT',
         headers: Auth.getAuthHeaders()
       });
       return await res.json();
     } catch (err) {
       console.error('Cancel booking error:', err);
-      return { success: false, message: 'Server error cancelling booking.' };
+      return { success: false, message: 'Server connection error.' };
     }
   };
 
-  // 9. Extend Booking -> PUT /api/bookings/:id/extend
+  // 11. Extend Booking -> PUT /api/bookings/:id/extend
   const extendBooking = async (bookingId, extraHours) => {
     try {
-      const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}/extend`, {
+      const res = await fetch(`${getApiBase()}/bookings/${encodeURIComponent(bookingId)}/extend`, {
         method: 'PUT',
         headers: Auth.getAuthHeaders(),
         body: JSON.stringify({ extraHours })
@@ -139,15 +171,15 @@ const Storage = (() => {
       return await res.json();
     } catch (err) {
       console.error('Extend booking error:', err);
-      return { success: false, message: 'Server error extending booking.' };
+      return { success: false, message: 'Server connection error.' };
     }
   };
 
-  // 10. Get Transactions -> GET /api/transactions (User) or GET /api/admin/transactions (Admin)
+  // 12. Get Transactions -> GET /api/transactions (User) or GET /api/admin/transactions (Admin)
   const getTransactions = async (userEmail = null) => {
     try {
       const isAdmin = !!Auth.getAdminToken();
-      const url = isAdmin ? `${API_BASE}/admin/transactions` : `${API_BASE}/transactions`;
+      const url = isAdmin ? `${getApiBase()}/admin/transactions` : `${getApiBase()}/transactions`;
       const headers = isAdmin ? Auth.getAdminAuthHeaders() : Auth.getAuthHeaders();
 
       const res = await fetch(url, { headers });
@@ -159,10 +191,10 @@ const Storage = (() => {
     }
   };
 
-  // 11. Admin: Dashboard Stats -> GET /api/admin/dashboard-stats
+  // 13. Admin: Dashboard Stats -> GET /api/admin/dashboard-stats
   const getAdminDashboardStats = async () => {
     try {
-      const res = await fetch(`${API_BASE}/admin/dashboard-stats`, {
+      const res = await fetch(`${getApiBase()}/admin/dashboard-stats`, {
         headers: Auth.getAdminAuthHeaders()
       });
       const data = await res.json();
@@ -176,6 +208,8 @@ const Storage = (() => {
   return {
     KEYS: Auth.KEYS,
     registerUser,
+    resetPassword,
+    changePassword,
     updateUserProfile,
     getUsers,
     getFacilities,

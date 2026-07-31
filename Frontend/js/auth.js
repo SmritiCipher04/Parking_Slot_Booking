@@ -4,7 +4,7 @@
  */
 
 const Auth = (() => {
-  const API_BASE = window.API_BASE_URL || '/api';
+  const getApiBase = () => window.API_BASE_URL || 'http://localhost:5000/api';
 
   const KEYS = {
     USER_TOKEN: 'excuseme_user_token',
@@ -34,7 +34,6 @@ const Auth = (() => {
     }
   };
 
-  // Helper for authenticated user API calls
   const getAuthHeaders = () => {
     const token = getUserToken();
     return {
@@ -43,7 +42,6 @@ const Auth = (() => {
     };
   };
 
-  // Helper for authenticated admin API calls
   const getAdminAuthHeaders = () => {
     const token = getAdminToken();
     return {
@@ -82,7 +80,7 @@ const Auth = (() => {
   // User Login via POST /api/users/login (bcrypt compare)
   const login = async (email, password) => {
     try {
-      const res = await fetch(`${API_BASE}/users/login`, {
+      const res = await fetch(`${getApiBase()}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -96,14 +94,14 @@ const Auth = (() => {
       return data;
     } catch (err) {
       console.error('Login error:', err);
-      return { success: false, message: 'Server connection error.' };
+      return { success: false, message: 'Could not connect to backend server. Make sure "npm start" is running in your terminal on http://localhost:5000' };
     }
   };
 
   // Admin Login via POST /api/admin/login (bcrypt compare)
   const adminLogin = async (username, password) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/login`, {
+      const res = await fetch(`${getApiBase()}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -117,7 +115,7 @@ const Auth = (() => {
       return data;
     } catch (err) {
       console.error('Admin login error:', err);
-      return { success: false, message: 'Server connection error.' };
+      return { success: false, message: 'Could not connect to backend server. Make sure "npm start" is running in your terminal on http://localhost:5000' };
     }
   };
 

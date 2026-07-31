@@ -1,14 +1,31 @@
 /**
- * DataStore Model
- * Centralized data management for parking facilities, slots, bookings, users, and transactions.
- * Includes at least 20 slots per facility location.
+ * DataStore Model & Memory Database Fallback
+ * Provides fast, zero-timeout operations when MongoDB Atlas connection is unwhitelisted/offline.
  */
 
+const bcrypt = require('bcryptjs');
+
+// Pre-hashed default user (password: 'password123')
+const defaultHashedPassword = bcrypt.hashSync('password123', 10);
+
+const users = [
+  {
+    _id: 'u1',
+    name: 'Smriti Sarkar',
+    email: 'smriti@example.com',
+    phone: '9876543210',
+    password: defaultHashedPassword,
+    registrationDate: new Date('2026-01-01')
+  }
+];
+
+const admins = [];
+
 const facilities = [
-  { id: 'f1', name: 'City Mall Parking', location: 'Guwahati', availableSlots: 15, ratePerHour: 20 },
-  { id: 'f2', name: 'Railway Station Parking', location: 'Guwahati', availableSlots: 14, ratePerHour: 15 },
-  { id: 'f3', name: 'ADTU Campus Parking', location: 'Sonapur', availableSlots: 18, ratePerHour: 10 },
-  { id: 'f4', name: 'GS Road Parking Complex', location: 'Guwahati', availableSlots: 16, ratePerHour: 25 }
+  { _id: 'f1', facilityId: 'f1', name: 'City Mall Parking', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 20, ratePerHour: 20 },
+  { _id: 'f2', facilityId: 'f2', name: 'Railway Station Parking', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 15, ratePerHour: 15 },
+  { _id: 'f3', facilityId: 'f3', name: 'ADTU Campus Parking', address: 'Sonapur, Assam', totalSlots: 20, pricePerHour: 10, ratePerHour: 10 },
+  { _id: 'f4', facilityId: 'f4', name: 'GS Road Parking Complex', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 25, ratePerHour: 25 }
 ];
 
 const generate20Slots = (facilityId, price, bookedIndexes = []) => {
@@ -18,12 +35,15 @@ const generate20Slots = (facilityId, price, bookedIndexes = []) => {
 
   letters.forEach(letter => {
     for (let num = 1; num <= 5; num++) {
-      const slotId = `${letter}${num}`;
+      const slotNumber = `${letter}${num}`;
       const isBooked = bookedIndexes.includes(index);
       slotsArr.push({
-        id: slotId,
+        _id: `slot_${facilityId}_${slotNumber}`,
+        slotId: slotNumber,
+        slotNumber: slotNumber,
+        location: facilityId,
         facilityId: facilityId,
-        status: isBooked ? 'booked' : 'available',
+        status: isBooked ? 'occupied' : 'available',
         price: price
       });
       index++;
@@ -34,35 +54,51 @@ const generate20Slots = (facilityId, price, bookedIndexes = []) => {
 };
 
 const slots = [
-  ...generate20Slots('f1', 20, [2, 6, 9, 12, 17]),
-  ...generate20Slots('f2', 15, [1, 4, 8, 11, 15, 19]),
+  ...generate20Slots('f1', 20, [2, 6, 12, 17]),
+  ...generate20Slots('f2', 15, [1, 4, 8, 15]),
   ...generate20Slots('f3', 10, [5, 14]),
-  ...generate20Slots('f4', 25, [3, 7, 10, 18])
+  ...generate20Slots('f4', 25, [3, 7, 10])
 ];
 
-const bookings = [
-  {
-    bookingId: 'BK1001',
-    userEmail: 'smriti@example.com',
-    facilityName: 'City Mall Parking',
-    slotNumber: 'A4',
-    date: '2026-07-08',
-    durationHours: 2,
-    amountPaid: 40,
-    paymentStatus: 'COMPLETED',
-    paymentId: 'pay_demo123456789',
-    createdAt: new Date('2026-07-08T10:00:00')
-  }
-];
+const bookings = [];
+const transactions = [];
 
-const users = [
-  { id: 'u1', name: 'Smriti Sarkar', email: 'smriti@example.com', password: 'password123', role: 'user' },
-  { id: 'admin1', name: 'Admin', email: 'admin@excuseme.com', password: 'adminpassword', role: 'admin' }
-];
+// Helper functions for memory fallback
+const findUserByEmail = async (email) => {
+  return users.find(u => u.email.toLowerCase() === email.toLowerCase());
+};
+
+const createUser = async ({ name, email, phone, password }) => {
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  const newUser = {
+    _id: `u_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+    name,
+    email: email.toLowerCase(),
+    phone,
+    password: hashedPassword,
+    registrationDate: new Date()
+  };
+  users.push(newUser);
+  return newUser;
+};
+
+const resetUserPasswordInMemory = async (email, phone, newPassword) => {
+  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.phone.trim() === phone.trim());
+  if (!user) return false;
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(newPassword, salt);
+  return true;
+};
 
 module.exports = {
+  users,
+  admins,
   facilities,
   slots,
   bookings,
-  users
+  transactions,
+  findUserByEmail,
+  createUser,
+  resetUserPasswordInMemory
 };

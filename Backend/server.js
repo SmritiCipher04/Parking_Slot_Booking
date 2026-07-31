@@ -15,6 +15,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const { connectDB } = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
+const checkDbConnection = require('./middleware/dbCheck');
 
 // RESTful Route Imports
 const userRoutes = require('./routes/userRoutes');
@@ -39,6 +40,14 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static Frontend web app
 app.use(express.static(path.join(__dirname, '../Frontend')));
 
+// DB Status check middleware for /api routes
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health' || req.path === '/admin/setup-status') {
+    return next();
+  }
+  checkDbConnection(req, res, next);
+});
+
 // REST API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
@@ -55,7 +64,7 @@ app.get('/api/health', (req, res) => {
     status: 'ONLINE',
     system: 'ExcuseME Parking Slot Booking API',
     database: 'MongoDB Atlas',
-    security: 'bcryptjs + JWT',
+    security: 'bcryptjs + JWT Authorization',
     timestamp: new Date()
   });
 });

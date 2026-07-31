@@ -29,12 +29,18 @@
 
     <div class="form-group">
       <label for="setup-password">Create Admin Password</label>
-      <input type="password" id="setup-password" placeholder="Min 5 characters" required>
+      <div class="password-wrapper">
+        <input type="password" id="setup-password" placeholder="Min 5 characters" required>
+        <button type="button" class="toggle-password-btn" data-target="setup-password" title="Show password">👁️</button>
+      </div>
     </div>
 
     <div class="form-group">
       <label for="setup-confirm-password">Confirm Admin Password</label>
-      <input type="password" id="setup-confirm-password" placeholder="Re-enter password" required>
+      <div class="password-wrapper">
+        <input type="password" id="setup-confirm-password" placeholder="Re-enter password" required>
+        <button type="button" class="toggle-password-btn" data-target="setup-confirm-password" title="Show password">👁️</button>
+      </div>
     </div>
 
     <button type="submit" id="setup-submit-btn" class="btn" style="width: 100%; background-color: var(--text-primary);">
@@ -49,9 +55,11 @@
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
+<script src="js/config.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/navbar.js"></script>
+<script src="js/password-toggle.js"></script>
 <script src="js/admin-setup-page.js"></script>
 </body>
 </html>

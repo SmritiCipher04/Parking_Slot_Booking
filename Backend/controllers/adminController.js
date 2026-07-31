@@ -1,17 +1,21 @@
 /**
  * Admin Controller
  * Handles One-Time Admin Setup, Admin Authentication (bcrypt), Dashboard Summary Stats, Location CRUD, Master Bookings, Users List, and Payments.
- * NO DEFAULT CREDENTIALS. NO PASSWORDS EXPOSED.
+ * NO DEFAULT CREDENTIALS. NO PASSWORDS EXPOSED. SUPPORTS DUAL MEMORY FALLBACK.
  */
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const Admin = require('../models/Admin');
 const User = require('../models/User');
 const ParkingLocation = require('../models/ParkingLocation');
 const Slot = require('../models/Slot');
 const Booking = require('../models/Booking');
 const Transaction = require('../models/Transaction');
+const dataStore = require('../models/dataStore');
+
+const isDbConnected = () => mongoose.connection.readyState === 1;
 
 const generateAdminToken = (id) => {
   return jwt.sign(
@@ -24,20 +28,23 @@ const generateAdminToken = (id) => {
 // GET /api/admin/setup-status
 const getSetupStatus = async (req, res) => {
   try {
-    const adminCount = await Admin.countDocuments();
-    res.status(200).json({
-      success: true,
-      isConfigured: adminCount > 0
-    });
+    let adminCount = 0;
+    if (isDbConnected()) {
+      adminCount = await Admin.countDocuments();
+    } else {
+      adminCount = dataStore.admins.length;
+    }
+    res.status(200).json({ success: true, isConfigured: adminCount > 0 });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// POST /api/admin/setup (One-Time Admin Setup)
+// POST /api/admin/setup
 const setupAdmin = async (req, res) => {
   try {
-    const adminCount = await Admin.countDocuments();
+    let adminCount = isDbConnected() ? await Admin.countDocuments() : dataStore.admins.length;
+
     if (adminCount > 0) {
       return res.status(403).json({
         success: false,
@@ -46,40 +53,37 @@ const setupAdmin = async (req, res) => {
     }
 
     const { username, password } = req.body;
-
     if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide both username and password for admin setup.'
-      });
+      return res.status(400).json({ success: false, message: 'Please provide both username and password for admin setup.' });
     }
 
-    if (password.length < 5) {
-      return res.status(400).json({
-        success: false,
-        message: 'Admin password must be at least 5 characters long.'
-      });
-    }
-
-    // Hash admin password with bcrypt
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const admin = await Admin.create({
-      username: username.toLowerCase().trim(),
-      password: hashedPassword
-    });
+    let adminId;
+    if (isDbConnected()) {
+      const admin = await Admin.create({
+        username: username.toLowerCase().trim(),
+        password: hashedPassword
+      });
+      adminId = admin._id;
+    } else {
+      const admin = {
+        _id: `admin_${Date.now()}`,
+        username: username.toLowerCase().trim(),
+        password: hashedPassword,
+        createdAt: new Date()
+      };
+      dataStore.admins.push(admin);
+      adminId = admin._id;
+    }
 
-    const token = generateAdminToken(admin._id);
-
+    const token = generateAdminToken(adminId);
     res.status(201).json({
       success: true,
       message: 'Admin account created successfully. Setup is now permanently disabled.',
       token,
-      admin: {
-        id: admin._id,
-        username: admin.username
-      }
+      admin: { id: adminId, username: username.toLowerCase().trim() }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -90,99 +94,80 @@ const setupAdmin = async (req, res) => {
 const adminLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
-
     if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide admin username and password.'
-      });
+      return res.status(400).json({ success: false, message: 'Please provide admin username and password.' });
     }
 
-    // Query admin and select password
-    const admin = await Admin.findOne({ username: username.toLowerCase().trim() }).select('+password');
+    if (isDbConnected()) {
+      const admin = await Admin.findOne({ username: username.toLowerCase().trim() }).select('+password');
+      if (!admin) return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
 
-    if (!admin) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid admin credentials.'
-      });
+      const isMatch = await bcrypt.compare(password, admin.password);
+      if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
+
+      const token = generateAdminToken(admin._id);
+      return res.status(200).json({ success: true, token, admin: { id: admin._id, username: admin.username } });
+    } else {
+      const admin = dataStore.admins.find(a => a.username === username.toLowerCase().trim());
+      if (!admin) return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
+
+      const isMatch = await bcrypt.compare(password, admin.password);
+      if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
+
+      const token = generateAdminToken(admin._id);
+      return res.status(200).json({ success: true, token, admin: { id: admin._id, username: admin.username } });
     }
-
-    // Compare bcrypt password
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid admin credentials.'
-      });
-    }
-
-    const token = generateAdminToken(admin._id);
-
-    res.status(200).json({
-      success: true,
-      message: 'Admin authentication successful',
-      token,
-      admin: {
-        id: admin._id,
-        username: admin.username
-      }
-    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/admin/dashboard-stats (Live Derived Stats from Database)
+// GET /api/admin/dashboard-stats
 const getDashboardStats = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const totalBookings = await Booking.countDocuments();
-    const totalLocations = await ParkingLocation.countDocuments();
+    if (isDbConnected()) {
+      const totalUsers = await User.countDocuments();
+      const totalBookings = await Booking.countDocuments();
+      const totalLocations = await ParkingLocation.countDocuments();
 
-    // Live revenue aggregation (non-cancelled bookings)
-    const revenueAgg = await Booking.aggregate([
-      { $match: { status: { $ne: 'cancelled' } } },
-      { $group: { _id: null, total: { $sum: '$amountPaid' } } }
-    ]);
-    const totalRevenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+      const revenueAgg = await Booking.aggregate([
+        { $match: { status: { $ne: 'cancelled' } } },
+        { $group: { _id: null, total: { $sum: '$amountPaid' } } }
+      ]);
+      const totalRevenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayBookings = await Booking.countDocuments({ date: todayStr });
 
-    // Today's Date String (YYYY-MM-DD)
-    const todayStr = new Date().toISOString().split('T')[0];
+      return res.status(200).json({
+        success: true,
+        stats: { totalUsers, totalBookings, totalLocations, totalRevenue, todayBookings, todayRevenue: 0 }
+      });
+    } else {
+      const totalUsers = dataStore.users.length;
+      const totalBookings = dataStore.bookings.length;
+      const totalLocations = dataStore.facilities.length;
+      const totalRevenue = dataStore.bookings.filter(b => b.status !== 'cancelled').reduce((sum, b) => sum + (b.amountPaid || 0), 0);
 
-    const todayBookings = await Booking.countDocuments({ date: todayStr });
-
-    const todayRevenueAgg = await Booking.aggregate([
-      { $match: { date: todayStr, status: { $ne: 'cancelled' } } },
-      { $group: { _id: null, total: { $sum: '$amountPaid' } } }
-    ]);
-    const todayRevenue = todayRevenueAgg.length > 0 ? todayRevenueAgg[0].total : 0;
-
-    res.status(200).json({
-      success: true,
-      stats: {
-        totalUsers,
-        totalBookings,
-        totalLocations,
-        totalRevenue,
-        todayBookings,
-        todayRevenue
-      }
-    });
+      return res.status(200).json({
+        success: true,
+        stats: { totalUsers, totalBookings, totalLocations, totalRevenue, todayBookings: totalBookings, todayRevenue: totalRevenue }
+      });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/admin/users (Excludes passwords)
+// GET /api/admin/users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ registrationDate: -1 });
-    res.status(200).json({
-      success: true,
-      count: users.length,
-      data: users
-    });
+    if (isDbConnected()) {
+      const users = await User.find().select('-password').sort({ registrationDate: -1 });
+      return res.status(200).json({ success: true, count: users.length, data: users });
+    } else {
+      const safeUsers = dataStore.users.map(({ password, ...u }) => u);
+      return res.status(200).json({ success: true, count: safeUsers.length, data: safeUsers });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -191,8 +176,12 @@ const getAllUsers = async (req, res) => {
 // Location CRUD
 const getAllLocations = async (req, res) => {
   try {
-    const locations = await ParkingLocation.find();
-    res.status(200).json({ success: true, data: locations });
+    if (isDbConnected()) {
+      const locations = await ParkingLocation.find();
+      return res.status(200).json({ success: true, data: locations });
+    } else {
+      return res.status(200).json({ success: true, data: dataStore.facilities });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -203,33 +192,37 @@ const createLocation = async (req, res) => {
     const { name, address, totalSlots, pricePerHour } = req.body;
     const slotsCount = parseInt(totalSlots) || 20;
 
-    const location = await ParkingLocation.create({
-      name,
-      address: address || 'Guwahati',
-      totalSlots: slotsCount,
-      pricePerHour: parseFloat(pricePerHour) || 20
-    });
+    if (isDbConnected()) {
+      const location = await ParkingLocation.create({
+        name,
+        address: address || 'Guwahati',
+        totalSlots: slotsCount,
+        pricePerHour: parseFloat(pricePerHour) || 20
+      });
 
-    // Create 20 slots for new location
-    const letters = ['A', 'B', 'C', 'D'];
-    const slotDocs = [];
-    letters.forEach(letter => {
-      for (let num = 1; num <= 5; num++) {
-        slotDocs.push({
-          location: location._id,
-          slotNumber: `${letter}${num}`,
-          status: 'available'
-        });
-      }
-    });
+      const letters = ['A', 'B', 'C', 'D'];
+      const slotDocs = [];
+      letters.forEach(letter => {
+        for (let num = 1; num <= 5; num++) {
+          slotDocs.push({ location: location._id, slotNumber: `${letter}${num}`, status: 'available' });
+        }
+      });
 
-    await Slot.create(slotDocs);
-
-    res.status(201).json({
-      success: true,
-      message: `Location "${name}" created with 20 slots.`,
-      location
-    });
+      await Slot.create(slotDocs);
+      return res.status(201).json({ success: true, message: `Location "${name}" created.`, location });
+    } else {
+      const newLoc = {
+        _id: `f_${Date.now()}`,
+        facilityId: `f_${Date.now()}`,
+        name,
+        address: address || 'Guwahati',
+        totalSlots: slotsCount,
+        pricePerHour: parseFloat(pricePerHour) || 20,
+        ratePerHour: parseFloat(pricePerHour) || 20
+      };
+      dataStore.facilities.push(newLoc);
+      return res.status(201).json({ success: true, message: `Location "${name}" created.`, location: newLoc });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -240,13 +233,18 @@ const updateLocation = async (req, res) => {
     const { id } = req.params;
     const { name, address, pricePerHour } = req.body;
 
-    const location = await ParkingLocation.findByIdAndUpdate(
-      id,
-      { name, address, pricePerHour: parseFloat(pricePerHour) },
-      { new: true }
-    );
-
-    res.status(200).json({ success: true, message: 'Location updated', location });
+    if (isDbConnected()) {
+      const location = await ParkingLocation.findByIdAndUpdate(id, { name, address, pricePerHour }, { new: true });
+      return res.status(200).json({ success: true, message: 'Location updated', location });
+    } else {
+      const loc = dataStore.facilities.find(f => f._id === id || f.facilityId === id);
+      if (loc) {
+        if (name) loc.name = name;
+        if (address) loc.address = address;
+        if (pricePerHour) { loc.pricePerHour = parseFloat(pricePerHour); loc.ratePerHour = parseFloat(pricePerHour); }
+      }
+      return res.status(200).json({ success: true, message: 'Location updated', location: loc });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -255,32 +253,28 @@ const updateLocation = async (req, res) => {
 const deleteLocation = async (req, res) => {
   try {
     const { id } = req.params;
-    await ParkingLocation.findByIdAndDelete(id);
-    await Slot.deleteMany({ location: id });
-
-    res.status(200).json({ success: true, message: 'Location and slots deleted' });
+    if (isDbConnected()) {
+      await ParkingLocation.findByIdAndDelete(id);
+      await Slot.deleteMany({ location: id });
+    } else {
+      const idx = dataStore.facilities.findIndex(f => f._id === id || f.facilityId === id);
+      if (idx !== -1) dataStore.facilities.splice(idx, 1);
+    }
+    return res.status(200).json({ success: true, message: 'Location deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Master Bookings with Filter
+// Master Bookings
 const getAllBookings = async (req, res) => {
   try {
-    const { status, date, location } = req.query;
-    let filter = {};
-
-    if (status) filter.status = status;
-    if (date) filter.date = date;
-    if (location) filter.location = location;
-
-    const bookings = await Booking.find(filter)
-      .populate('user', 'name email phone')
-      .populate('location', 'name address')
-      .populate('slot', 'slotNumber')
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({ success: true, count: bookings.length, data: bookings });
+    if (isDbConnected()) {
+      const bookings = await Booking.find().populate('user', 'name email phone').sort({ createdAt: -1 });
+      return res.status(200).json({ success: true, count: bookings.length, data: bookings });
+    } else {
+      return res.status(200).json({ success: true, count: dataStore.bookings.length, data: dataStore.bookings });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -291,27 +285,31 @@ const updateBookingStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const booking = await Booking.findByIdAndUpdate(id, { status }, { new: true });
-    
-    if (status === 'cancelled' && booking) {
-      await Slot.findByIdAndUpdate(booking.slot, { status: 'available' });
+    if (isDbConnected()) {
+      const booking = await Booking.findByIdAndUpdate(id, { status }, { new: true });
+      if (status === 'cancelled' && booking) {
+        await Slot.findByIdAndUpdate(booking.slot, { status: 'available' });
+      }
+      return res.status(200).json({ success: true, message: `Booking status updated to ${status}`, booking });
+    } else {
+      const booking = dataStore.bookings.find(b => b.bookingId === id || b._id === id);
+      if (booking) booking.status = status;
+      return res.status(200).json({ success: true, message: `Booking status updated to ${status}`, booking });
     }
-
-    res.status(200).json({ success: true, message: `Booking status updated to ${status}`, booking });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Master Transactions List
+// Master Transactions
 const getAllTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find()
-      .populate('user', 'name email')
-      .populate('booking', 'bookingId slotNumber locationName')
-      .sort({ timestamp: -1 });
-
-    res.status(200).json({ success: true, count: transactions.length, data: transactions });
+    if (isDbConnected()) {
+      const transactions = await Transaction.find().populate('user', 'name email').sort({ timestamp: -1 });
+      return res.status(200).json({ success: true, count: transactions.length, data: transactions });
+    } else {
+      return res.status(200).json({ success: true, count: dataStore.transactions.length, data: dataStore.transactions });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

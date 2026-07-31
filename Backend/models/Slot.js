@@ -21,9 +21,8 @@ const slotSchema = new mongoose.Schema({
     enum: ['available', 'occupied', 'reserved'],
     default: 'available'
   }
-});
+}, { bufferCommands: false });
 
-// Composite unique index for location + slotNumber
 slotSchema.index({ location: 1, slotNumber: 1 }, { unique: true });
 
 module.exports = mongoose.model('Slot', slotSchema);

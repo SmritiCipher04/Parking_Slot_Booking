@@ -27,12 +27,12 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
-    select: false // EXCLUDED by default from all queries to prevent password leakage
+    select: false
   },
   registrationDate: {
     type: Date,
     default: Date.now
   }
-});
+}, { bufferCommands: false }); // Disable buffering to prevent 10,000ms timeouts when DB is offline
 
 module.exports = mongoose.model('User', userSchema);

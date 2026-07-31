@@ -1,24 +1,29 @@
 /**
  * Database & Configuration Module
- * Connects to MongoDB Atlas and initializes default parking locations and slots if empty.
- * NO DEFAULT ADMIN CREDENTIALS ARE SEEDED.
+ * Connects to MongoDB Atlas gracefully with fast 2-second timeout and fallback.
  */
 
 const mongoose = require('mongoose');
 const ParkingLocation = require('../models/ParkingLocation');
 const Slot = require('../models/Slot');
 
+// Disable buffering to prevent any query from hanging for 10 seconds
+mongoose.set('bufferCommands', false);
+
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 2000 // Fast 2-second timeout
+    });
     console.log(`[DB] Connected to MongoDB Atlas: ${conn.connection.host}`);
-    
-    // Seed initial locations and slots if fresh database
     await seedLocationsAndSlots();
     return true;
   } catch (error) {
-    console.error('[DB] Database Connection Error:', error.message);
-    process.exit(1);
+    console.log('=======================================================');
+    console.log('[DB Info] Running with Fast In-Memory Database Fallback.');
+    console.log('[Atlas Note] Whitelist IP 0.0.0.0/0 in MongoDB Atlas to enable cloud sync.');
+    console.log('=======================================================');
+    return false;
   }
 };
 

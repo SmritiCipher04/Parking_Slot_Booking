@@ -2,7 +2,6 @@
  * Admin Mongoose Model
  * Collection: admins
  * Fields: username, hashed password (select: false), createdAt
- * Created ONLY via One-Time Admin Setup (/admin-setup)
  */
 
 const mongoose = require('mongoose');
@@ -18,12 +17,12 @@ const adminSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Admin password is required'],
-    select: false // EXCLUDED by default from all queries
+    select: false
   },
   createdAt: {
     type: Date,
     default: Date.now
   }
-});
+}, { bufferCommands: false });
 
 module.exports = mongoose.model('Admin', adminSchema);

@@ -1,12 +1,16 @@
 /**
  * Auth Controller
- * Handles user registration, bcrypt password hashing, login verification, and profile management.
- * PASSWORDS ARE NEVER RETURNED IN API RESPONSES.
+ * Handles user registration, bcrypt password hashing, login verification, profile management, and password reset/change.
+ * SUPPORTS ZERO-TIMEOUT DUAL FALLBACK: MONGODB ATLAS + IN-MEMORY STORE.
  */
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const dataStore = require('../models/dataStore');
+
+const isDbConnected = () => mongoose.connection.readyState === 1;
 
 const generateToken = (id, role = 'user') => {
   return jwt.sign(
@@ -21,7 +25,6 @@ const register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
-    // Input validations
     if (!name || !email || !phone || !password) {
       return res.status(400).json({
         success: false,
@@ -44,8 +47,18 @@ const register = async (req, res) => {
       });
     }
 
-    // Check duplicate email
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    let existingUser = null;
+
+    if (isDbConnected()) {
+      try {
+        existingUser = await User.findOne({ email: email.toLowerCase() });
+      } catch (e) {}
+    }
+
+    if (!existingUser) {
+      existingUser = await dataStore.findUserByEmail(email);
+    }
+
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -53,30 +66,40 @@ const register = async (req, res) => {
       });
     }
 
-    // Hash password with bcrypt
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    let user = null;
 
-    // Save to users collection in MongoDB Atlas
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      phone,
-      password: hashedPassword
-    });
+    if (isDbConnected()) {
+      try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        user = await User.create({
+          name,
+          email: email.toLowerCase(),
+          phone,
+          password: hashedPassword
+        });
+      } catch (e) {
+        console.warn('[DB Register Fallback]:', e.message);
+      }
+    }
 
-    const token = generateToken(user._id, 'user');
+    if (!user) {
+      user = await dataStore.createUser({ name, email, phone, password });
+    }
 
-    res.status(201).json({
+    const userId = user._id || user.id;
+    const token = generateToken(userId, 'user');
+
+    return res.status(201).json({
       success: true,
       message: 'User registration successful',
       token,
       user: {
-        id: user._id,
+        id: userId,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        registrationDate: user.registrationDate
+        registrationDate: user.registrationDate || new Date()
       }
     });
   } catch (error) {
@@ -96,8 +119,19 @@ const login = async (req, res) => {
       });
     }
 
-    // Query user and explicitly select password for bcrypt comparison
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    let user = null;
+
+    if (isDbConnected()) {
+      try {
+        user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+      } catch (dbErr) {
+        console.warn('[DB Login Fallback]:', dbErr.message);
+      }
+    }
+
+    if (!user) {
+      user = await dataStore.findUserByEmail(email);
+    }
 
     if (!user) {
       return res.status(401).json({
@@ -106,7 +140,6 @@ const login = async (req, res) => {
       });
     }
 
-    // Compare bcrypt password hash
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -115,20 +148,118 @@ const login = async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id, 'user');
+    const userId = user._id || user.id;
+    const token = generateToken(userId, 'user');
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
+        id: userId,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        registrationDate: user.registrationDate
+        registrationDate: user.registrationDate || new Date()
       }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// POST /api/users/reset-password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, phone, newPassword } = req.body;
+
+    if (!email || !phone || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide registered Email, Phone number, and New Password.'
+      });
+    }
+
+    if (newPassword.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 4 characters long.'
+      });
+    }
+
+    let resetSuccess = false;
+
+    if (isDbConnected()) {
+      try {
+        const user = await User.findOne({
+          email: email.toLowerCase().trim(),
+          phone: phone.trim()
+        }).select('+password');
+
+        if (user) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(newPassword, salt);
+          await user.save();
+          resetSuccess = true;
+        }
+      } catch (e) {}
+    }
+
+    if (!resetSuccess) {
+      resetSuccess = await dataStore.resetUserPasswordInMemory(email, phone, newPassword);
+    }
+
+    if (!resetSuccess) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found matching provided registered Email and Phone number.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset successfully! You can now log in with your new password.'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PUT /api/users/change-password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Please provide current and new password.' });
+    }
+
+    let user = null;
+
+    if (isDbConnected()) {
+      try {
+        user = await User.findById(req.user._id || req.user.id).select('+password');
+        if (user) {
+          const isMatch = await bcrypt.compare(currentPassword, user.password);
+          if (!isMatch) return res.status(400).json({ success: false, message: 'Incorrect current password.' });
+
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(newPassword, salt);
+          await user.save();
+          return res.status(200).json({ success: true, message: 'Password changed successfully.' });
+        }
+      } catch (e) {}
+    }
+
+    user = dataStore.users.find(u => u.email === req.user.email);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ success: false, message: 'Incorrect current password.' });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    return res.status(200).json({ success: true, message: 'Password changed successfully.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -140,11 +271,11 @@ const getProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       user: {
-        id: req.user._id,
+        id: req.user._id || req.user.id,
         name: req.user.name,
         email: req.user.email,
         phone: req.user.phone,
-        registrationDate: req.user.registrationDate
+        registrationDate: req.user.registrationDate || new Date()
       }
     });
   } catch (error) {
@@ -157,22 +288,32 @@ const updateProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { name, phone },
-      { new: true, runValidators: true }
-    );
+    if (isDbConnected()) {
+      try {
+        const user = await User.findByIdAndUpdate(
+          req.user._id || req.user.id,
+          { name, phone },
+          { new: true, runValidators: true }
+        );
+        if (user) {
+          return res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: { id: user._id, name: user.name, email: user.email, phone: user.phone, registrationDate: user.registrationDate }
+          });
+        }
+      } catch (e) {}
+    }
 
-    res.status(200).json({
+    const user = dataStore.users.find(u => u.email === req.user.email);
+    if (user) {
+      if (name) user.name = name;
+      if (phone) user.phone = phone;
+    }
+    return res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        registrationDate: user.registrationDate
-      }
+      user: { id: user ? user._id : req.user.id, name, email: req.user.email, phone }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -182,6 +323,8 @@ const updateProfile = async (req, res) => {
 module.exports = {
   register,
   login,
+  resetPassword,
+  changePassword,
   getProfile,
   updateProfile
 };

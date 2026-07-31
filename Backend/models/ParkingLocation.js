@@ -30,6 +30,6 @@ const parkingLocationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-});
+}, { bufferCommands: false });
 
 module.exports = mongoose.model('ParkingLocation', parkingLocationSchema);

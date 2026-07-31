@@ -11,34 +11,75 @@
 <header></header>
 
 <div class="container auth-container">
-  <h2>User Login</h2>
-  <p class="subtitle">Access your parking bookings and reserve slots easily.</p>
+  <h2>User Portal Login</h2>
+  <p class="subtitle">Access your account to book slots and manage reservations</p>
 
   <form id="login-form">
     <div class="form-group">
       <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" value="smriti@example.com" placeholder="name@example.com" required>
+      <input type="email" id="email" placeholder="Enter your registered email" required>
     </div>
 
     <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" value="password123" placeholder="Enter your password" required>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label for="password" style="margin-bottom: 0;">Password</label>
+        <a href="#" id="forgot-password-link" style="font-size: 12px; color: var(--primary-blue); font-weight: 600; text-decoration: none;">Forgot Password?</a>
+      </div>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Enter your password" required>
+        <button type="button" class="toggle-password-btn" data-target="password" title="Show password">👁️</button>
+      </div>
     </div>
 
-    <button type="submit" class="btn" style="width: 100%;">Sign In to Book Slots</button>
+    <button type="submit" class="btn" style="width: 100%;">Sign In</button>
   </form>
 
-  <p class="small-note">Don't have an account yet? <a href="register.html">Create a free account</a></p>
-  <p class="small-note" style="margin-top: 10px;">Are you a system administrator? <a href="admin-login.html">Login as Admin</a></p>
+  <p class="small-note">Don't have an account? <a href="register.html">Register here</a></p>
+</div>
+
+<!-- Reset Password Modal (Hidden Overlay) -->
+<div class="modal-overlay" id="forgot-modal">
+  <div class="modal-content" style="max-width: 440px;">
+    <button class="modal-close" id="forgot-modal-close">&times;</button>
+    <h3>🔑 Reset Your Password</h3>
+    <p class="subtitle" style="font-size: 13px; margin-bottom: 16px;">Verify your registered email and phone number to create a new password.</p>
+
+    <form id="forgot-password-form">
+      <div class="form-group">
+        <label for="forgot-email">Registered Email</label>
+        <input type="email" id="forgot-email" placeholder="e.g. user@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="forgot-phone">Registered Phone Number</label>
+        <input type="tel" id="forgot-phone" placeholder="e.g. 9876543210" required>
+      </div>
+
+      <div class="form-group">
+        <label for="forgot-new-password">New Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="forgot-new-password" placeholder="At least 4 characters" required>
+          <button type="button" class="toggle-password-btn" data-target="forgot-new-password" title="Show password">👁️</button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" id="forgot-modal-cancel">Cancel</button>
+        <button type="submit" class="btn" id="forgot-submit-btn">Reset Password</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <footer>
   &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
 </footer>
 
+<script src="js/config.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/navbar.js"></script>
+<script src="js/password-toggle.js"></script>
 <script src="js/login-page.js"></script>
 </body>
 </html>
