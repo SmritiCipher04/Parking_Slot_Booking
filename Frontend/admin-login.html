@@ -11,18 +11,25 @@
 <header></header>
 
 <div class="container auth-container">
-  <h2>🛡️ Admin Portal Authentication</h2>
-  <p class="subtitle">System administrator login for location management and revenue analytics.</p>
+  <h2>🛡️ Admin Portal Login</h2>
+  <p class="subtitle">Authenticate with your self-created admin username and password.</p>
+
+  <div id="unconfigured-notice" style="display: none; background-color: var(--primary-light); border: 1px solid var(--border-focus); padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+    <strong>Initial Setup Required:</strong> No admin account has been created yet.
+    <div style="margin-top: 10px;">
+      <a href="admin-setup.html" class="btn btn-sm">⚙️ Perform One-Time Admin Setup</a>
+    </div>
+  </div>
 
   <form id="admin-login-form">
     <div class="form-group">
-      <label for="admin-email">Admin Email / ID</label>
-      <input type="text" id="admin-email" value="admin@excuseme.com" placeholder="admin@excuseme.com" required>
+      <label for="admin-email">Admin Username</label>
+      <input type="text" id="admin-email" placeholder="Enter admin username" required>
     </div>
 
     <div class="form-group">
       <label for="admin-password">Password</label>
-      <input type="password" id="admin-password" value="adminpassword" placeholder="Enter admin password" required>
+      <input type="password" id="admin-password" placeholder="Enter admin password" required>
     </div>
 
     <button type="submit" class="btn" style="width: 100%; background-color: var(--text-primary);">

@@ -1,6 +1,7 @@
 /**
  * Booking Mongoose Model
- * Represents slot reservations stored in MongoDB Atlas.
+ * Collection: bookings
+ * Fields: user (ref), slot (ref), location (ref), date, duration, status (upcoming/completed/cancelled), entry PIN
  */
 
 const mongoose = require('mongoose');
@@ -11,25 +12,31 @@ const bookingSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  pin: {
-    type: String,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   userEmail: {
     type: String,
     required: true,
-    lowercase: true,
-    trim: true
+    lowercase: true
   },
-  facilityId: {
+  location: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ParkingLocation',
+    required: true
+  },
+  locationName: {
     type: String,
     required: true
   },
-  facilityName: {
-    type: String,
+  slot: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Slot',
     required: true
   },
-  slotId: {
+  slotNumber: {
     type: String,
     required: true
   },
@@ -51,8 +58,12 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Upcoming', 'Completed', 'Cancelled'],
-    default: 'Upcoming'
+    enum: ['upcoming', 'completed', 'cancelled'],
+    default: 'upcoming'
+  },
+  entryPin: {
+    type: String,
+    required: true
   },
   paymentId: {
     type: String,

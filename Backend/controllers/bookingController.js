@@ -1,19 +1,17 @@
 /**
  * Booking Controller
- * Manages user booking records, history, cancellations, and extensions via MongoDB Atlas.
+ * Handles user reservation creation, queries, cancellation, and extensions in MongoDB Atlas.
  */
 
 const Booking = require('../models/Booking');
 const Slot = require('../models/Slot');
 const Transaction = require('../models/Transaction');
 
-// GET /api/bookings
+// GET /api/bookings (Logged-in User Bookings)
 const getUserBookings = async (req, res) => {
   try {
-    const email = req.query.email;
-    const filter = (email && req.query.all !== 'true') ? { userEmail: email.toLowerCase() } : {};
-    
-    const bookings = await Booking.find(filter).sort({ createdAt: -1 });
+    const userId = req.user._id;
+    const bookings = await Booking.find({ user: userId }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -28,7 +26,7 @@ const getUserBookings = async (req, res) => {
 // GET /api/bookings/:id
 const getBookingById = async (req, res) => {
   try {
-    const booking = await Booking.findOne({ bookingId: req.params.id });
+    const booking = await Booking.findOne({ bookingId: req.params.id, user: req.user._id });
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
@@ -47,20 +45,17 @@ const cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
     const booking = await Booking.findOneAndUpdate(
-      { bookingId },
-      { status: 'Cancelled' },
+      { bookingId, user: req.user._id },
+      { status: 'cancelled' },
       { new: true }
     );
 
     if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
+      return res.status(404).json({ success: false, message: 'Booking not found or not owned by user' });
     }
 
     // Free the slot in MongoDB Atlas
-    await Slot.findOneAndUpdate(
-      { slotId: booking.slotId, facilityId: booking.facilityId },
-      { status: 'available' }
-    );
+    await Slot.findByIdAndUpdate(booking.slot, { status: 'available' });
 
     res.status(200).json({
       success: true,
@@ -79,7 +74,7 @@ const extendBooking = async (req, res) => {
     const { extraHours } = req.body;
     const hours = parseInt(extraHours) || 1;
 
-    const booking = await Booking.findOne({ bookingId });
+    const booking = await Booking.findOne({ bookingId, user: req.user._id });
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
@@ -93,13 +88,13 @@ const extendBooking = async (req, res) => {
     await Transaction.create({
       transactionId: `TXN_${Math.floor(100000 + Math.random() * 900000)}`,
       paymentId: `pay_ext_${Date.now()}`,
+      booking: booking._id,
       bookingId: booking.bookingId,
-      userEmail: booking.userEmail,
-      facilityName: booking.facilityName,
-      slotId: booking.slotId,
+      user: req.user._id,
+      userEmail: req.user.email,
       amount: extraCost,
       paymentMethod: 'Razorpay Extension',
-      status: 'SUCCESSFUL'
+      paymentStatus: 'SUCCESSFUL'
     });
 
     res.status(200).json({
@@ -113,13 +108,11 @@ const extendBooking = async (req, res) => {
   }
 };
 
-// GET /api/transactions
-const getTransactions = async (req, res) => {
+// GET /api/transactions (Logged-in User Payment History)
+const getUserTransactions = async (req, res) => {
   try {
-    const email = req.query.email;
-    const filter = (email && req.query.all !== 'true') ? { userEmail: email.toLowerCase() } : {};
-    
-    const transactions = await Transaction.find(filter).sort({ createdAt: -1 });
+    const userId = req.user._id;
+    const transactions = await Transaction.find({ user: userId }).sort({ timestamp: -1 });
 
     res.status(200).json({
       success: true,
@@ -136,5 +129,5 @@ module.exports = {
   getBookingById,
   cancelBooking,
   extendBooking,
-  getTransactions
+  getUserTransactions
 };

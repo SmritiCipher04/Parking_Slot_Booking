@@ -1,13 +1,14 @@
 /**
  * Payment Controller
- * Manages Razorpay order generation, HMAC verification, and persisting completed Bookings and Transactions into MongoDB Atlas.
+ * Handles Razorpay order creation and payment verification creating linked Booking and Transaction records in MongoDB Atlas.
  */
 
 const crypto = require('crypto');
 const Booking = require('../models/Booking');
 const Transaction = require('../models/Transaction');
 const Slot = require('../models/Slot');
-const Facility = require('../models/Facility');
+const ParkingLocation = require('../models/ParkingLocation');
+const User = require('../models/User');
 
 let Razorpay;
 try {
@@ -16,7 +17,7 @@ try {
   Razorpay = null;
 }
 
-// GET /api/payment/get-key
+// GET /api/payments/get-key
 const getKey = (req, res) => {
   const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TAyTdm1bjJolB1';
   res.status(200).json({
@@ -25,7 +26,7 @@ const getKey = (req, res) => {
   });
 };
 
-// POST /api/payment/create-order
+// POST /api/payments/create-order
 const createOrder = async (req, res) => {
   try {
     const { amount, slotId, facilityName, duration } = req.body;
@@ -92,7 +93,7 @@ const createOrder = async (req, res) => {
   }
 };
 
-// POST /api/payment/verify-payment
+// POST /api/payments/verify-payment
 const verifyPayment = async (req, res) => {
   try {
     const {
@@ -100,14 +101,14 @@ const verifyPayment = async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       slotId,
-      facilityId,
+      locationId,
       facilityName,
-      userEmail,
       amount,
       duration,
       paymentMethod
     } = req.body;
 
+    const user = req.user;
     const keySecret = process.env.RAZORPAY_KEY_SECRET || 'QYJA5f7LMZHE1PUaeRI9pPJn';
 
     let isValid = false;
@@ -128,26 +129,47 @@ const verifyPayment = async (req, res) => {
     }
 
     if (isValid) {
-      const pin = Math.floor(1000 + Math.random() * 9000).toString();
+      const entryPin = Math.floor(1000 + Math.random() * 9000).toString();
       const bookingId = `BK${Math.floor(10000 + Math.random() * 90000)}`;
-      const targetFacilityId = facilityId || 'f1';
-      const targetFacilityName = facilityName || 'City Mall Parking';
+      
+      // Resolve location document
+      let locationDoc = null;
+      if (locationId) {
+        locationDoc = await ParkingLocation.findById(locationId);
+      }
+      if (!locationDoc) {
+        locationDoc = await ParkingLocation.findOne();
+      }
+
+      // Resolve slot document
+      let slotDoc = null;
+      if (locationDoc) {
+        slotDoc = await Slot.findOne({ location: locationDoc._id, slotNumber: slotId || 'A4' });
+      }
+      if (!slotDoc && locationDoc) {
+        slotDoc = await Slot.create({ location: locationDoc._id, slotNumber: slotId || 'A4', status: 'occupied' });
+      }
+
       const durationHours = parseInt(duration) || 2;
       const amountPaid = parseFloat(amount) || 40;
+      const locName = locationDoc ? locationDoc.name : (facilityName || 'City Mall Parking');
+      const ratePerHour = locationDoc ? locationDoc.pricePerHour : 20;
 
       // 1. Create Booking in MongoDB Atlas
       const newBooking = await Booking.create({
-        bookingId: bookingId,
-        pin: pin,
-        userEmail: (userEmail || 'smriti@example.com').toLowerCase(),
-        facilityId: targetFacilityId,
-        facilityName: targetFacilityName,
-        slotId: slotId || 'A4',
+        bookingId,
+        entryPin,
+        user: user._id,
+        userEmail: user.email,
+        location: locationDoc ? locationDoc._id : user._id,
+        locationName: locName,
+        slot: slotDoc ? slotDoc._id : user._id,
+        slotNumber: slotId || 'A4',
         date: new Date().toISOString().split('T')[0],
-        durationHours: durationHours,
-        ratePerHour: amountPaid / durationHours,
-        amountPaid: amountPaid,
-        status: 'Upcoming',
+        durationHours,
+        ratePerHour,
+        amountPaid,
+        status: 'upcoming',
         paymentId: razorpay_payment_id || `pay_${Date.now()}`
       });
 
@@ -155,20 +177,20 @@ const verifyPayment = async (req, res) => {
       await Transaction.create({
         transactionId: `TXN_${Math.floor(100000 + Math.random() * 900000)}`,
         paymentId: razorpay_payment_id || `pay_${Date.now()}`,
-        bookingId: bookingId,
-        userEmail: (userEmail || 'smriti@example.com').toLowerCase(),
-        facilityName: targetFacilityName,
-        slotId: slotId || 'A4',
+        booking: newBooking._id,
+        bookingId,
+        user: user._id,
+        userEmail: user.email,
         amount: amountPaid,
         paymentMethod: paymentMethod || 'Razorpay (Card)',
-        status: 'SUCCESSFUL'
+        paymentStatus: 'SUCCESSFUL'
       });
 
-      // 3. Update Slot Status to booked in MongoDB Atlas
-      await Slot.findOneAndUpdate(
-        { slotId: slotId || 'A4', facilityId: targetFacilityId },
-        { status: 'booked' }
-      );
+      // 3. Update Slot Status to occupied in MongoDB Atlas
+      if (slotDoc) {
+        slotDoc.status = 'occupied';
+        await slotDoc.save();
+      }
 
       res.status(200).json({
         success: true,

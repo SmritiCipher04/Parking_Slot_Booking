@@ -1,60 +1,56 @@
 /**
- * Storage Service - API Bridge to MongoDB Atlas
- * Connects frontend views to Node.js/Express backend connected to MongoDB Atlas.
+ * Storage Service - REST API Client with JWT Auth
+ * Connects frontend controllers to Node.js / Express backend with MongoDB Atlas.
+ * EXCLUDES ALL PASSWORDS FROM RESPONSES.
  */
 
 const Storage = (() => {
   const API_BASE = window.API_BASE_URL || '/api';
 
-  const KEYS = {
-    CURRENT_USER: 'excuseme_current_user',
-    CURRENT_ADMIN: 'excuseme_current_admin'
-  };
-
-  // 1. User Registration -> POST /api/auth/register (MongoDB Atlas)
+  // 1. Register User -> POST /api/users/register (bcrypt hash)
   const registerUser = async (userData) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
+      const res = await fetch(`${API_BASE}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
-      const data = await res.json();
-      return data;
+      return await res.json();
     } catch (err) {
       console.error('Registration API error:', err);
-      return { success: false, message: 'Server error during registration.' };
+      return { success: false, message: 'Server connection error.' };
     }
   };
 
-  // 2. User Profile Update -> PUT /api/auth/profile (MongoDB Atlas)
+  // 2. Update User Profile -> PUT /api/users/profile (JWT Protected)
   const updateUserProfile = async (email, updatedFields) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/profile`, {
+      const res = await fetch(`${API_BASE}/users/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, ...updatedFields })
+        headers: Auth.getAuthHeaders(),
+        body: JSON.stringify(updatedFields)
       });
       const data = await res.json();
 
       if (data.success && data.user) {
-        // Update session
-        const currentUser = JSON.parse(localStorage.getItem(KEYS.CURRENT_USER));
+        const currentUser = Auth.getCurrentUser();
         if (currentUser) {
-          localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify({ ...currentUser, ...updatedFields }));
+          Auth.setCurrentUser({ ...currentUser, ...data.user });
         }
       }
       return data;
     } catch (err) {
       console.error('Profile update error:', err);
-      return { success: false, message: 'Server error updating profile.' };
+      return { success: false, message: 'Server error.' };
     }
   };
 
-  // 3. Get All Registered Users (Admin) -> GET /api/auth/users (MongoDB Atlas)
+  // 3. Admin: Get Registered Users -> GET /api/admin/users (Excludes passwords)
   const getUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/auth/users`);
+      const res = await fetch(`${API_BASE}/admin/users`, {
+        headers: Auth.getAdminAuthHeaders()
+      });
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
@@ -63,38 +59,37 @@ const Storage = (() => {
     }
   };
 
-  // 4. Get Facilities -> GET /api/slots/facilities (MongoDB Atlas)
+  // 4. Get Locations -> GET /api/locations
   const getFacilities = async () => {
     try {
-      const res = await fetch(`${API_BASE}/slots/facilities`);
+      const res = await fetch(`${API_BASE}/locations`);
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
-      console.error('Get facilities error:', err);
+      console.error('Get locations error:', err);
       return [];
     }
   };
 
-  // 5. Add Facility (Admin) -> POST /api/slots/facilities (MongoDB Atlas)
-  const addFacility = async (facilityData) => {
+  // 5. Admin: Create Location -> POST /api/admin/locations
+  const addFacility = async (locationData) => {
     try {
-      const res = await fetch(`${API_BASE}/slots/facilities`, {
+      const res = await fetch(`${API_BASE}/admin/locations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(facilityData)
+        headers: Auth.getAdminAuthHeaders(),
+        body: JSON.stringify(locationData)
       });
-      const data = await res.json();
-      return data;
+      return await res.json();
     } catch (err) {
-      console.error('Add facility error:', err);
-      return { success: false, message: 'Server error creating facility.' };
+      console.error('Add location error:', err);
+      return { success: false, message: 'Server error creating location.' };
     }
   };
 
-  // 6. Get Slots by Facility -> GET /api/slots?facilityId=... (MongoDB Atlas)
-  const getSlotsByFacility = async (facilityId) => {
+  // 6. Get Slots by Location -> GET /api/locations/:id/slots
+  const getSlotsByFacility = async (locationId) => {
     try {
-      const res = await fetch(`${API_BASE}/slots?facilityId=${encodeURIComponent(facilityId)}`);
+      const res = await fetch(`${API_BASE}/locations/${encodeURIComponent(locationId)}/slots`);
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
@@ -103,13 +98,14 @@ const Storage = (() => {
     }
   };
 
-  // 7. Get User Bookings -> GET /api/bookings?email=... (MongoDB Atlas)
+  // 7. Get User Bookings -> GET /api/bookings (User) or GET /api/admin/bookings (Admin)
   const getBookings = async (userEmail = null) => {
     try {
-      const url = userEmail 
-        ? `${API_BASE}/bookings?email=${encodeURIComponent(userEmail)}`
-        : `${API_BASE}/bookings?all=true`;
-      const res = await fetch(url);
+      const isAdmin = !!Auth.getAdminToken();
+      const url = isAdmin ? `${API_BASE}/admin/bookings` : `${API_BASE}/bookings`;
+      const headers = isAdmin ? Auth.getAdminAuthHeaders() : Auth.getAuthHeaders();
+
+      const res = await fetch(url, { headers });
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
@@ -118,43 +114,43 @@ const Storage = (() => {
     }
   };
 
-  // 8. Cancel Booking -> PUT /api/bookings/:id/cancel (MongoDB Atlas)
+  // 8. Cancel Booking -> PUT /api/bookings/:id/cancel
   const cancelBooking = async (bookingId) => {
     try {
       const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}/cancel`, {
-        method: 'PUT'
+        method: 'PUT',
+        headers: Auth.getAuthHeaders()
       });
-      const data = await res.json();
-      return data;
+      return await res.json();
     } catch (err) {
       console.error('Cancel booking error:', err);
       return { success: false, message: 'Server error cancelling booking.' };
     }
   };
 
-  // 9. Extend Booking -> PUT /api/bookings/:id/extend (MongoDB Atlas)
+  // 9. Extend Booking -> PUT /api/bookings/:id/extend
   const extendBooking = async (bookingId, extraHours) => {
     try {
       const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}/extend`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: Auth.getAuthHeaders(),
         body: JSON.stringify({ extraHours })
       });
-      const data = await res.json();
-      return data;
+      return await res.json();
     } catch (err) {
       console.error('Extend booking error:', err);
       return { success: false, message: 'Server error extending booking.' };
     }
   };
 
-  // 10. Get Transactions -> GET /api/transactions?email=... (MongoDB Atlas)
+  // 10. Get Transactions -> GET /api/transactions (User) or GET /api/admin/transactions (Admin)
   const getTransactions = async (userEmail = null) => {
     try {
-      const url = userEmail 
-        ? `${API_BASE}/transactions?email=${encodeURIComponent(userEmail)}`
-        : `${API_BASE}/transactions?all=true`;
-      const res = await fetch(url);
+      const isAdmin = !!Auth.getAdminToken();
+      const url = isAdmin ? `${API_BASE}/admin/transactions` : `${API_BASE}/transactions`;
+      const headers = isAdmin ? Auth.getAdminAuthHeaders() : Auth.getAuthHeaders();
+
+      const res = await fetch(url, { headers });
       const data = await res.json();
       return data.success ? data.data : [];
     } catch (err) {
@@ -163,8 +159,22 @@ const Storage = (() => {
     }
   };
 
+  // 11. Admin: Dashboard Stats -> GET /api/admin/dashboard-stats
+  const getAdminDashboardStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/dashboard-stats`, {
+        headers: Auth.getAdminAuthHeaders()
+      });
+      const data = await res.json();
+      return data.success ? data.stats : null;
+    } catch (err) {
+      console.error('Get dashboard stats error:', err);
+      return null;
+    }
+  };
+
   return {
-    KEYS,
+    KEYS: Auth.KEYS,
     registerUser,
     updateUserProfile,
     getUsers,
@@ -174,7 +184,8 @@ const Storage = (() => {
     getBookings,
     cancelBooking,
     extendBooking,
-    getTransactions
+    getTransactions,
+    getAdminDashboardStats
   };
 })();
 

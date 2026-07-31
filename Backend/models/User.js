@@ -1,15 +1,12 @@
 /**
  * User Mongoose Model
- * Represents user and admin accounts stored in MongoDB Atlas.
+ * Collection: users
+ * Fields: name, email, phone, hashed password (select: false), registrationDate
  */
 
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    unique: true
-  },
   name: {
     type: String,
     required: [true, 'Full name is required'],
@@ -24,18 +21,15 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
+    required: [true, 'Phone number is required'],
     trim: true
   },
   password: {
     type: String,
-    required: [true, 'Password is required']
+    required: [true, 'Password is required'],
+    select: false // EXCLUDED by default from all queries to prevent password leakage
   },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  },
-  createdAt: {
+  registrationDate: {
     type: Date,
     default: Date.now
   }

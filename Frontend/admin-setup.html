@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Initial Setup - ExcuseME Parking</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header></header>
+
+<div class="container auth-container">
+  <h2>⚙️ One-Time Admin Account Setup</h2>
+  <p class="subtitle">Configure your initial system administrator credentials. This setup page can only be used once.</p>
+
+  <div id="setup-status-box" style="display: none; background-color: var(--status-booked-bg); border: 1px solid var(--status-booked-border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+    <strong style="color: var(--status-booked-text);">Notice:</strong> Admin setup has already been completed. This page is permanently disabled.
+    <div style="margin-top: 10px;">
+      <a href="admin-login.html" class="btn btn-sm">Go to Admin Login</a>
+    </div>
+  </div>
+
+  <form id="admin-setup-form">
+    <div class="form-group">
+      <label for="setup-username">Create Admin Username</label>
+      <input type="text" id="setup-username" placeholder="e.g. admin_master" required>
+    </div>
+
+    <div class="form-group">
+      <label for="setup-password">Create Admin Password</label>
+      <input type="password" id="setup-password" placeholder="Min 5 characters" required>
+    </div>
+
+    <div class="form-group">
+      <label for="setup-confirm-password">Confirm Admin Password</label>
+      <input type="password" id="setup-confirm-password" placeholder="Re-enter password" required>
+    </div>
+
+    <button type="submit" id="setup-submit-btn" class="btn" style="width: 100%; background-color: var(--text-primary);">
+      🔐 Save Credentials & Lock Setup
+    </button>
+  </form>
+
+  <p class="small-note" style="margin-top: 20px;">Already set up? <a href="admin-login.html">Proceed to Admin Login</a></p>
+</div>
+
+<footer>
+  &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
+</footer>
+
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+<script src="js/admin-setup-page.js"></script>
+</body>
+</html>

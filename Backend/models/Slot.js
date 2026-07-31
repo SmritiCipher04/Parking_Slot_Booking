@@ -1,32 +1,29 @@
 /**
  * Slot Mongoose Model
- * Represents individual parking slots stored in MongoDB Atlas.
+ * Collection: slots
+ * Fields: location (ref), slotNumber, status (available/occupied/reserved)
  */
 
 const mongoose = require('mongoose');
 
 const slotSchema = new mongoose.Schema({
-  slotId: {
-    type: String,
+  location: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ParkingLocation',
     required: true
   },
-  facilityId: {
+  slotNumber: {
     type: String,
-    required: true,
-    ref: 'Facility'
+    required: true
   },
   status: {
     type: String,
-    enum: ['available', 'booked', 'reserved'],
+    enum: ['available', 'occupied', 'reserved'],
     default: 'available'
-  },
-  price: {
-    type: Number,
-    required: true
   }
 });
 
-// Composite unique index for slotId + facilityId
-slotSchema.index({ slotId: 1, facilityId: 1 }, { unique: true });
+// Composite unique index for location + slotNumber
+slotSchema.index({ location: 1, slotNumber: 1 }, { unique: true });
 
 module.exports = mongoose.model('Slot', slotSchema);

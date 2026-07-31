@@ -1,70 +1,82 @@
 /**
  * Auth Controller
- * User authentication, registration, admin access, and profile management via MongoDB Atlas.
+ * Handles user registration, bcrypt password hashing, login verification, and profile management.
+ * PASSWORDS ARE NEVER RETURNED IN API RESPONSES.
  */
 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// POST /api/auth/login
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user || user.password !== password) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email address or password'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        id: user.userId || user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+const generateToken = (id, role = 'user') => {
+  return jwt.sign(
+    { id, role },
+    process.env.JWT_SECRET || 'excuseme_super_secret_jwt_key_2026_adtu',
+    { expiresIn: '7d' }
+  );
 };
 
-// POST /api/auth/register
+// POST /api/users/register
 const register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
+    // Input validations
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields (name, email, phone, password) are required.'
+      });
+    }
+
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.'
+      });
+    }
+
+    if (password.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 4 characters long.'
+      });
+    }
+
+    // Check duplicate email
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email address'
+        message: 'An account with this email address already exists.'
       });
     }
 
-    const newUser = await User.create({
-      userId: `u_${Date.now()}`,
+    // Hash password with bcrypt
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Save to users collection in MongoDB Atlas
+    const user = await User.create({
       name,
       email: email.toLowerCase(),
       phone,
-      password,
-      role: 'user'
+      password: hashedPassword
     });
+
+    const token = generateToken(user._id, 'user');
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful',
+      message: 'User registration successful',
+      token,
       user: {
-        id: newUser.userId || newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: newUser.role
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        registrationDate: user.registrationDate
       }
     });
   } catch (error) {
@@ -72,35 +84,49 @@ const register = async (req, res) => {
   }
 };
 
-// POST /api/auth/admin-login
-const adminLogin = async (req, res) => {
+// POST /api/users/login
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const admin = await User.findOne({ email: email.toLowerCase(), password, role: 'admin' });
 
-    if (!admin && email === 'admin@excuseme.com' && password === 'adminpassword') {
-      return res.status(200).json({
-        success: true,
-        message: 'Admin authentication successful',
-        user: { id: 'admin1', name: 'System Admin', email: 'admin@excuseme.com', role: 'admin' }
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and password.'
       });
     }
 
-    if (!admin) {
+    // Query user and explicitly select password for bcrypt comparison
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid admin credentials'
+        message: 'Invalid email address or password.'
       });
     }
+
+    // Compare bcrypt password hash
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email address or password.'
+      });
+    }
+
+    const token = generateToken(user._id, 'user');
 
     res.status(200).json({
       success: true,
-      message: 'Admin authentication successful',
+      message: 'Login successful',
+      token,
       user: {
-        id: admin.userId || admin._id,
-        name: admin.name,
-        email: admin.email,
-        role: admin.role
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        registrationDate: user.registrationDate
       }
     });
   } catch (error) {
@@ -108,44 +134,45 @@ const adminLogin = async (req, res) => {
   }
 };
 
-// PUT /api/auth/profile
+// GET /api/users/profile
+const getProfile = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        phone: req.user.phone,
+        registrationDate: req.user.registrationDate
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PUT /api/users/profile
 const updateProfile = async (req, res) => {
   try {
-    const { email, name, phone } = req.body;
-    const user = await User.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      { name, phone },
-      { new: true }
-    );
+    const { name, phone } = req.body;
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User profile not found' });
-    }
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, phone },
+      { new: true, runValidators: true }
+    );
 
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
       user: {
-        id: user.userId || user._id,
+        id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role
+        registrationDate: user.registrationDate
       }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// GET /api/auth/users (Admin Master List)
-const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find().select('-password');
-    res.status(200).json({
-      success: true,
-      count: users.length,
-      data: users
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -153,9 +180,8 @@ const getAllUsers = async (req, res) => {
 };
 
 module.exports = {
-  login,
   register,
-  adminLogin,
-  updateProfile,
-  getAllUsers
+  login,
+  getProfile,
+  updateProfile
 };

@@ -1,6 +1,6 @@
 /**
  * Admin Dashboard Page Controller
- * Renders master statistics, user account lists, bookings, and location management via MongoDB Atlas.
+ * Enforces admin JWT auth gating, renders live computed database stats, master users list (without passwords), locations CRUD, and master bookings.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,18 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveFacilityBtn = document.getElementById('save-facility-btn');
 
   async function updateDashboardStats() {
-    const bookings = await Storage.getBookings();
-    const users = await Storage.getUsers();
-    const facilities = await Storage.getFacilities();
-
-    const revenue = bookings
-      .filter(b => b.status !== 'Cancelled')
-      .reduce((sum, b) => sum + (b.amountPaid || 0), 0);
-
-    if (statRevenue) statRevenue.textContent = `Rs. ${revenue}`;
-    if (statBookings) statBookings.textContent = bookings.length;
-    if (statUsers) statUsers.textContent = users.length;
-    if (statFacilities) statFacilities.textContent = facilities.length;
+    const stats = await Storage.getAdminDashboardStats();
+    if (stats) {
+      if (statRevenue) statRevenue.textContent = `Rs. ${stats.totalRevenue}`;
+      if (statBookings) statBookings.textContent = stats.totalBookings;
+      if (statUsers) statUsers.textContent = stats.totalUsers;
+      if (statFacilities) statFacilities.textContent = stats.totalLocations;
+    }
   }
 
   async function renderFacilities() {
@@ -51,14 +46,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     facTableBody.innerHTML = '';
 
     facilities.forEach(f => {
-      const facId = f.facilityId || f.id;
+      const facId = f.facilityId || f._id || f.id;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><code>${facId}</code></td>
         <td><strong>${f.name}</strong></td>
-        <td>${f.location}</td>
+        <td>${f.address || f.location}</td>
         <td><span class="badge badge-info">${f.totalSlots || 20} Slots</span></td>
-        <td><strong>Rs. ${f.ratePerHour}</strong> / hr</td>
+        <td><strong>Rs. ${f.pricePerHour || f.ratePerHour}</strong> / hr</td>
       `;
       facTableBody.appendChild(tr);
     });
@@ -77,14 +72,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     bookings.forEach(b => {
       const tr = document.createElement('tr');
       let badgeClass = 'badge-success';
-      if (b.status === 'Cancelled') badgeClass = 'badge-danger';
-      if (b.status === 'Completed') badgeClass = 'badge-info';
+      if (b.status === 'cancelled') badgeClass = 'badge-danger';
+      if (b.status === 'completed') badgeClass = 'badge-info';
+
+      const uEmail = b.userEmail || (b.user ? b.user.email : 'user@example.com');
+      const locName = b.locationName || (b.location ? b.location.name : 'City Mall Parking');
+      const sNum = b.slotNumber || b.slotId;
 
       tr.innerHTML = `
         <td><strong>${b.bookingId}</strong></td>
-        <td>${b.userEmail}</td>
-        <td>${b.facilityName}</td>
-        <td><strong style="color: var(--primary-blue);">${b.slotId}</strong></td>
+        <td>${uEmail}</td>
+        <td>${locName}</td>
+        <td><strong style="color: var(--primary-blue);">${sNum}</strong></td>
         <td>${b.date}</td>
         <td>${b.durationHours} hrs</td>
         <td><strong>Rs. ${b.amountPaid}</strong></td>
@@ -99,15 +98,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const users = await Storage.getUsers();
     userTableBody.innerHTML = '';
 
+    if (users.length === 0) {
+      userTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-secondary);">No registered users found.</td></tr>`;
+      return;
+    }
+
     users.forEach(u => {
-      const uId = u.userId || u.id || u._id;
+      const uId = u._id || u.userId || u.id;
+      const regDate = u.registrationDate ? new Date(u.registrationDate).toLocaleDateString() : 'N/A';
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><code>${uId}</code></td>
         <td><strong>${u.name}</strong></td>
         <td>${u.email}</td>
         <td>${u.phone || 'N/A'}</td>
-        <td><span class="badge badge-info">${u.role || 'user'}</span></td>
+        <td><span style="font-size:12px; color: var(--text-secondary);">${regDate}</span></td>
       `;
       userTableBody.appendChild(tr);
     });
@@ -128,35 +133,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (saveFacilityBtn) {
     saveFacilityBtn.addEventListener('click', async () => {
       const name = document.getElementById('fac-name').value.trim();
-      const location = document.getElementById('fac-location').value.trim();
+      const address = document.getElementById('fac-location').value.trim();
       const slots = document.getElementById('fac-slots').value.trim();
       const rate = document.getElementById('fac-rate').value.trim();
 
-      if (!name || !location) {
+      if (!name || !address) {
         alert('Please fill out all facility fields.');
         return;
       }
 
       const res = await Storage.addFacility({
         name,
-        location,
+        address,
         totalSlots: slots,
-        ratePerHour: rate
+        pricePerHour: rate
       });
 
       closeFacilityModal();
 
       if (res.success) {
-        alert(`New facility "${name}" saved to MongoDB Atlas with 20 slots!`);
+        alert(`New location "${name}" created with 20 slots in MongoDB Atlas!`);
         await updateDashboardStats();
         await renderFacilities();
       } else {
-        alert(res.message || 'Error saving facility.');
+        alert(res.message || 'Error creating location.');
       }
     });
   }
 
-  // Initial Load
+  // Initial Data Fetching
   await updateDashboardStats();
   await renderFacilities();
   await renderMasterBookings();

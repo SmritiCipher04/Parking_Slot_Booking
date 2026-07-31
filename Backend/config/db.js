@@ -1,22 +1,20 @@
 /**
  * Database & Configuration Module
- * Connects to MongoDB Atlas and handles database initialization and seeding.
+ * Connects to MongoDB Atlas and initializes default parking locations and slots if empty.
+ * NO DEFAULT ADMIN CREDENTIALS ARE SEEDED.
  */
 
 const mongoose = require('mongoose');
-const User = require('../models/User');
-const Facility = require('../models/Facility');
+const ParkingLocation = require('../models/ParkingLocation');
 const Slot = require('../models/Slot');
-const Booking = require('../models/Booking');
-const Transaction = require('../models/Transaction');
 
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`[DB] Connected to MongoDB Atlas: ${conn.connection.host}`);
     
-    // Seed initial data if database is fresh
-    await seedDatabase();
+    // Seed initial locations and slots if fresh database
+    await seedLocationsAndSlots();
     return true;
   } catch (error) {
     console.error('[DB] Database Connection Error:', error.message);
@@ -24,57 +22,44 @@ const connectDB = async () => {
   }
 };
 
-const seedDatabase = async () => {
+const seedLocationsAndSlots = async () => {
   try {
-    // 1. Seed Admin & Default Users
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      await User.create([
-        { userId: 'admin1', name: 'System Admin', email: 'admin@excuseme.com', phone: '9999999999', password: 'adminpassword', role: 'admin' },
-        { userId: 'u1', name: 'Smriti Sarkar', email: 'smriti@example.com', phone: '9876543210', password: 'password123', role: 'user' }
-      ]);
-      console.log('[DB Seeder] Seeded default users and admin into MongoDB Atlas.');
-    }
-
-    // 2. Seed Facilities
-    const facilityCount = await Facility.countDocuments();
-    if (facilityCount === 0) {
-      const defaultFacilities = [
-        { facilityId: 'f1', name: 'City Mall Parking', location: 'Guwahati', totalSlots: 20, ratePerHour: 20 },
-        { facilityId: 'f2', name: 'Railway Station Parking', location: 'Guwahati', totalSlots: 20, ratePerHour: 15 },
-        { facilityId: 'f3', name: 'ADTU Campus Parking', location: 'Sonapur', totalSlots: 20, ratePerHour: 10 },
-        { facilityId: 'f4', name: 'GS Road Parking Complex', location: 'Guwahati', totalSlots: 20, ratePerHour: 25 }
+    const locationCount = await ParkingLocation.countDocuments();
+    if (locationCount === 0) {
+      const defaultLocations = [
+        { name: 'City Mall Parking', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 20 },
+        { name: 'Railway Station Parking', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 15 },
+        { name: 'ADTU Campus Parking', address: 'Sonapur, Assam', totalSlots: 20, pricePerHour: 10 },
+        { name: 'GS Road Parking Complex', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 25 }
       ];
 
-      await Facility.create(defaultFacilities);
-      console.log('[DB Seeder] Seeded default parking facilities into MongoDB Atlas.');
+      const createdLocations = await ParkingLocation.create(defaultLocations);
+      console.log('[DB Seeder] Seeded default parking locations into MongoDB Atlas.');
 
-      // 3. Seed 20 Slots per facility
       const letters = ['A', 'B', 'C', 'D'];
       const slotDocs = [];
 
-      for (const fac of defaultFacilities) {
+      createdLocations.forEach((loc, locIndex) => {
         let idx = 1;
         letters.forEach(letter => {
           for (let num = 1; num <= 5; num++) {
-            const slotId = `${letter}${num}`;
+            const slotNumber = `${letter}${num}`;
             let status = 'available';
-            if (fac.facilityId === 'f1' && [2, 6, 12, 17].includes(idx)) status = 'booked';
-            if (fac.facilityId === 'f1' && [5, 14].includes(idx)) status = 'reserved';
+            if (locIndex === 0 && [2, 6, 12, 17].includes(idx)) status = 'occupied';
+            if (locIndex === 0 && [5, 14].includes(idx)) status = 'reserved';
 
             slotDocs.push({
-              slotId: slotId,
-              facilityId: fac.facilityId,
-              status: status,
-              price: fac.ratePerHour
+              location: loc._id,
+              slotNumber: slotNumber,
+              status: status
             });
             idx++;
           }
         });
-      }
+      });
 
       await Slot.create(slotDocs);
-      console.log('[DB Seeder] Seeded 20 slots per facility into MongoDB Atlas.');
+      console.log('[DB Seeder] Seeded 20 slots per parking location into MongoDB Atlas.');
     }
   } catch (err) {
     console.error('[DB Seeder Error]:', err.message);
