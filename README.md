@@ -66,18 +66,15 @@ Parking_Slot_Booking/
 
 ---
 
-## ⚙️ Environment Variables Setup (.env)
+## ⚙️ Environment Variables Setup
 
-The sensitive Razorpay API secret key is stored in the `.env` file on the backend server:
+The backend requires a `.env` file inside the `Backend/` directory. Copy the provided template and fill in your own credentials:
 
-```env
-PORT=5000
-NODE_ENV=development
-RAZORPAY_KEY_ID=rzp_test_TAyTdm1bjJolB1
-RAZORPAY_KEY_SECRET=rzp_secret_TAyTdm1bjJolB1_SecretKey
+```bash
+cp Backend/.env.example Backend/.env
 ```
 
-> **Security Note**: Never commit `.env` to git repository. All `.env` files are ignored in `.gitignore`.
+Refer to `Backend/.env.example` for all required variable names. **Never commit your actual `.env` file** — it is already listed in `.gitignore`.
 
 ---
 
