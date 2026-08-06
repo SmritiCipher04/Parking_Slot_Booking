@@ -182,23 +182,29 @@ const login = async (req, res) => {
       user = await dataStore.findUserByEmail(cleanEmail);
     }
 
-    // FIX: Removed auto-onboarding on login. Previously, any unknown email + password silently
-    // created a new account. This was a critical vulnerability. Now we return a proper 401.
-    // Block password login for accounts that use Google Sign-In
-    if (user && user.authProvider === 'google') {
-      return res.status(400).json({
+    if (!user) {
+      return res.status(401).json({
         success: false,
-        message: "This account uses Google Sign-In. Please click 'Sign in with Google' to log in."
+        message: 'Invalid email address or password.'
       });
     }
 
     let isMatch = false;
-    try {
-      if (user.password) {
+
+    if (user.password) {
+      try {
         isMatch = await bcrypt.compare(password, user.password);
+      } catch (bcryptErr) {
+        console.error('[bcrypt compare error]:', bcryptErr.message);
       }
-    } catch (bcryptErr) {
-      console.error('[bcrypt compare error]:', bcryptErr.message);
+    } else {
+      // First password login for an account created via Google Sign-In: set password
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+      if (isDbConnected() && user.save) {
+        await user.save();
+      }
+      isMatch = true;
     }
 
     if (!isMatch) {

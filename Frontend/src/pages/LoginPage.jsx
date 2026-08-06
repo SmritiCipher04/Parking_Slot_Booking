@@ -100,16 +100,36 @@ const LoginPage = () => {
             />
           </div>
 
-          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '16px 0 20px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '12px 0 20px 0' }}>
             <input
               type="checkbox"
               id="remember-me"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              style={{ width: '16px', height: '16px', accentColor: 'var(--primary-blue)', cursor: 'pointer' }}
+              style={{
+                width: '15px',
+                height: '15px',
+                accentColor: 'var(--primary-blue)',
+                cursor: 'pointer',
+                margin: 0
+              }}
             />
-            <label htmlFor="remember-me" style={{ fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer', margin: 0, fontWeight: 500 }}>
-              Remember me on this device (Stay logged in)
+            <label
+              htmlFor="remember-me"
+              style={{
+                fontSize: '13px',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                margin: 0,
+                fontWeight: 400,
+                textTransform: 'none',
+                letterSpacing: 'normal',
+                display: 'inline',
+                lineHeight: 1,
+                userSelect: 'none'
+              }}
+            >
+              Remember me
             </label>
           </div>
 

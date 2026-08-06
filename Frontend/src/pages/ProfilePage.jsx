@@ -224,46 +224,39 @@ const ProfilePage = () => {
                 <UserAvatar user={user} size={88} />
               )}
 
-              {!isGoogleUser && (
-                <button
-                  type="button"
-                  title="Click to change profile picture"
-                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                  style={{
-                    position: 'absolute',
-                    bottom: '2px',
-                    right: '2px',
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--primary-blue)',
-                    color: '#ffffff',
-                    border: '2px solid #ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                    padding: 0,
-                    transition: 'transform 0.15s ease'
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                </button>
-              )}
+              <button
+                type="button"
+                title="Click to change profile picture"
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  right: '2px',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--primary-blue)',
+                  color: '#ffffff',
+                  border: '2px solid #ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                  padding: 0,
+                  transition: 'transform 0.15s ease'
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </button>
             </div>
 
             <div style={{ flex: 1 }}>
               <h2 style={{ margin: 0, fontSize: '22px', color: 'var(--text-primary)' }}>{user ? user.name : 'User Profile'}</h2>
               <p className="subtitle" style={{ margin: '4px 0 0 0', fontSize: '13px' }}>{user ? user.email : ''}</p>
-              {isGoogleUser && (
-                <span className="badge badge-info" style={{ marginTop: '8px', display: 'inline-block', fontSize: '11px', fontWeight: 600 }}>
-                  Google Authenticated
-                </span>
-              )}
             </div>
           </div>
 
@@ -279,15 +272,10 @@ const ProfilePage = () => {
               Profile Picture
             </h3>
 
-            {isGoogleUser ? (
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
-                Profile picture managed by your Google account.
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 12px 0' }}>
+                Upload a custom image (.jpg, .png, .webp max 2MB)
               </p>
-            ) : (
-              <div>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 12px 0' }}>
-                  Upload a custom image (.jpg, .png, .webp max 2MB)
-                </p>
 
                 <input
                   ref={fileInputRef}
@@ -364,7 +352,6 @@ const ProfilePage = () => {
                   </div>
                 )}
               </div>
-            )}
           </div>
 
           <form id="profile-form" onSubmit={handleProfileSubmit}>
@@ -406,40 +393,36 @@ const ProfilePage = () => {
             </button>
           </form>
 
-          {!isGoogleUser && (
-            <>
-              <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
 
-              <h3>Change Password</h3>
-              <p className="subtitle" style={{ fontSize: '13px', marginBottom: '16px' }}>Update your password stored in MongoDB Atlas.</p>
+          <h3>Change Password</h3>
+          <p className="subtitle" style={{ fontSize: '13px', marginBottom: '16px' }}>Update your password stored in MongoDB Atlas.</p>
 
-              <form id="change-password-form" onSubmit={handleChangePasswordSubmit}>
-                <div className="form-group">
-                  <label htmlFor="current-password">Current Password</label>
-                  <PasswordInput
-                    id="current-password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current password"
-                  />
-                </div>
+          <form id="change-password-form" onSubmit={handleChangePasswordSubmit}>
+            <div className="form-group">
+              <label htmlFor="current-password">Current Password</label>
+              <PasswordInput
+                id="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+              />
+            </div>
 
-                <div className="form-group">
-                  <label htmlFor="new-password">New Password</label>
-                  <PasswordInput
-                    id="new-password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min 4 chars)"
-                  />
-                </div>
+            <div className="form-group">
+              <label htmlFor="new-password">New Password</label>
+              <PasswordInput
+                id="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password (min 4 chars)"
+              />
+            </div>
 
-                <button type="submit" className="btn btn-secondary" style={{ width: '100%' }}>
-                  Update Password
-                </button>
-              </form>
-            </>
-          )}
+            <button type="submit" className="btn btn-secondary" style={{ width: '100%' }}>
+              Update Password
+            </button>
+          </form>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
 
