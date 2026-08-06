@@ -20,6 +20,10 @@ const slotSchema = new mongoose.Schema({
     type: String,
     enum: ['available', 'occupied', 'reserved'],
     default: 'available'
+  },
+  occupiedUntil: {
+    type: Date,
+    default: null
   }
 }, { bufferCommands: false });
 

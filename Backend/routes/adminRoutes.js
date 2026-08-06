@@ -19,6 +19,8 @@ const {
   updateBookingStatus,
   getAllTransactions
 } = require('../controllers/adminController');
+const { getDeletedAccountLogs } = require('../controllers/deletionController');
+const { createPlan, deletePlan, getAllSubscriptionsAdmin } = require('../controllers/subscriptionController');
 const { protectAdmin } = require('../middleware/authMiddleware');
 
 // Public Setup & Login Endpoints
@@ -36,5 +38,13 @@ router.delete('/locations/:id', protectAdmin, deleteLocation);
 router.get('/bookings', protectAdmin, getAllBookings);
 router.put('/bookings/:id/status', protectAdmin, updateBookingStatus);
 router.get('/transactions', protectAdmin, getAllTransactions);
+
+// Admin-only 2-day deleted accounts retention audit log
+router.get('/deleted-accounts', protectAdmin, getDeletedAccountLogs);
+
+// Admin ExcuseME PLUS subscription management
+router.post('/subscriptions/plans', protectAdmin, createPlan);
+router.delete('/subscriptions/plans/:id', protectAdmin, deletePlan);
+router.get('/subscriptions', protectAdmin, getAllSubscriptionsAdmin);
 
 module.exports = router;

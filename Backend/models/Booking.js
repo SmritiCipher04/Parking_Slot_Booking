@@ -15,7 +15,7 @@ const bookingSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   userEmail: {
     type: String,
@@ -25,7 +25,7 @@ const bookingSchema = new mongoose.Schema({
   location: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ParkingLocation',
-    required: true
+    required: false
   },
   locationName: {
     type: String,
@@ -34,7 +34,7 @@ const bookingSchema = new mongoose.Schema({
   slot: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Slot',
-    required: true
+    required: false
   },
   slotNumber: {
     type: String,
@@ -58,7 +58,7 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['upcoming', 'completed', 'cancelled'],
+    enum: ['upcoming', 'active', 'completed', 'cancelled'],
     default: 'upcoming'
   },
   entryPin: {

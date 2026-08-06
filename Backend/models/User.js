@@ -21,13 +21,22 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: [true, 'Phone number is required'],
+    required: false,
     trim: true
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: false,
     select: false
+  },
+  profilePicture: {
+    type: String,
+    default: null
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   },
   registrationDate: {
     type: Date,

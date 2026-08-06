@@ -1,6 +1,6 @@
 /**
  * Navbar Component Controller
- * Renders and manages sticky white navbar, top-left hamburger dropdown menu, active page state, and Admin Portal button.
+ * Renders and manages sticky white navbar, top-left hamburger dropdown menu, active page state, and role gating.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,11 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>☰</span>
           </button>
 
-          <!-- Top-Left Admin Portal Button -->
-          <a href="admin-login.html" class="admin-nav-btn" title="Admin Portal">
-            <span>🛡️</span> Admin Portal
-          </a>
-
           <!-- Slide-down Dropdown Menu from Hamburger Icon -->
           <div class="dropdown-menu" id="hamburger-dropdown">
             ${currentUser ? `
@@ -34,6 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
               <a href="transactions.html" class="dropdown-item">💳 Transaction History</a>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item text-danger" id="logout-menu-btn">🚪 Logout</button>
+            ` : currentAdmin ? `
+              <div class="dropdown-header">
+                <div class="user-name">Admin: ${currentAdmin.username}</div>
+                <div class="user-email">System Control Panel</div>
+              </div>
+              <a href="admin-dashboard.html" class="dropdown-item">📊 Admin Control Dashboard</a>
+              <a href="index.html" class="dropdown-item">🚗 User Portal Home</a>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item text-danger" id="logout-menu-btn">🚪 Admin Logout</button>
             ` : `
               <div class="dropdown-header">
                 <div class="user-name">Welcome Guest</div>
@@ -42,15 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
               <a href="login.html" class="dropdown-item">🔑 User Login</a>
               <a href="register.html" class="dropdown-item">📝 User Register</a>
               <div class="dropdown-divider"></div>
-              <a href="admin-login.html" class="dropdown-item">🛡️ Admin Login</a>
+              <a href="admin-login.html" class="dropdown-item">🛡️ Admin Portal Login</a>
             `}
           </div>
         </div>
 
-        <!-- Brand Logo -->
-        <a href="index.html" class="brand-logo">
-          <h1>ExcuseME</h1>
-        </a>
+        <!-- Centered Brand Title -->
+        <div class="nav-center">
+          <a href="index.html" class="brand-logo">
+            <h1>ExcuseME</h1>
+          </a>
+        </div>
 
         <!-- Nav Right Navigation Links -->
         <div class="nav-right">
@@ -89,7 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
-        Auth.logout();
+        if (currentAdmin) {
+          Auth.logoutAdmin();
+        } else {
+          Auth.logout();
+        }
       });
     }
   }

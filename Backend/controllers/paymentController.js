@@ -1,6 +1,8 @@
 /**
  * Payment Controller
- * Handles Razorpay order creation and payment verification creating linked Booking and Transaction records with Memory Fallback.
+ * Handles Razorpay order creation and payment verification,
+ * creating linked Booking and Transaction records in MongoDB Atlas.
+ * Falls back to in-memory store only when Atlas is unreachable.
  */
 
 const crypto = require('crypto');
@@ -22,10 +24,13 @@ try {
 
 // GET /api/payments/get-key
 const getKey = (req, res) => {
-  const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TAyTdm1bjJolB1';
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  if (!keyId) {
+    console.warn('[Payment] RAZORPAY_KEY_ID is not set in .env');
+  }
   res.status(200).json({
     success: true,
-    keyId: keyId
+    keyId: keyId || ''
   });
 };
 
@@ -36,36 +41,35 @@ const createOrder = async (req, res) => {
     const numericAmount = parseFloat(amount) || 40;
     const amountInPaise = Math.round(numericAmount * 100);
 
-    const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TAyTdm1bjJolB1';
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || 'QYJA5f7LMZHE1PUaeRI9pPJn';
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     let order;
 
-    if (Razorpay && keyId && keySecret && !keyId.includes('your_razorpay')) {
+    if (Razorpay && keyId && keySecret) {
       try {
-        const instance = new Razorpay({
-          key_id: keyId,
-          key_secret: keySecret
-        });
-
+        const instance = new Razorpay({ key_id: keyId, key_secret: keySecret });
         order = await instance.orders.create({
           amount: amountInPaise,
           currency: 'INR',
           receipt: `rcpt_${Date.now()}`,
           notes: {
             slotId: slotId || 'A4',
-            facilityName: facilityName || 'City Mall Parking',
+            facilityName: facilityName || 'Parking',
             duration: duration || 2
           }
         });
+        console.log(`[Payment] Razorpay order created: ${order.id}`);
       } catch (sdkError) {
-        console.warn('[Razorpay SDK Notice]: Local order fallback:', sdkError.message);
+        console.warn('[Payment] Razorpay SDK error, using local order fallback:', sdkError.message);
       }
+    } else {
+      console.warn('[Payment] Razorpay credentials not found in .env — using local order fallback.');
     }
 
     if (!order) {
       order = {
-        id: `order_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`,
+        id: `order_local_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`,
         entity: 'order',
         amount: amountInPaise,
         amount_paid: 0,
@@ -82,17 +86,13 @@ const createOrder = async (req, res) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: keyId,
-      facilityName: facilityName || 'City Mall Parking',
+      keyId: keyId || '',
+      facilityName: facilityName || 'Parking',
       slotId: slotId || 'A4'
     });
   } catch (error) {
-    console.error('Error creating Razorpay order:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create payment order',
-      error: error.message
-    });
+    console.error('[Payment] Error creating order:', error);
+    res.status(500).json({ success: false, message: 'Failed to create payment order', error: error.message });
   }
 };
 
@@ -104,7 +104,7 @@ const verifyPayment = async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       slotId,
-      locationId,
+      facilityId,
       facilityName,
       amount,
       duration,
@@ -112,60 +112,168 @@ const verifyPayment = async (req, res) => {
     } = req.body;
 
     const user = req.user;
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
     const entryPin = Math.floor(1000 + Math.random() * 9000).toString();
     const bookingId = `BK${Math.floor(10000 + Math.random() * 90000)}`;
     const durationHours = parseInt(duration) || 2;
     const amountPaid = parseFloat(amount) || 40;
     const locName = facilityName || 'City Mall Parking';
 
+    console.log(`[Payment] verifyPayment called — facilityId: ${facilityId}, slotId: ${slotId}, user: ${user.email}`);
+
     if (isDbConnected()) {
+      // 1. Resolve location document from Atlas
       let locationDoc = null;
-      if (locationId) locationDoc = await ParkingLocation.findById(locationId);
-      if (!locationDoc) locationDoc = await ParkingLocation.findOne();
 
+      if (facilityId) {
+        if (mongoose.Types.ObjectId.isValid(facilityId)) {
+          try {
+            locationDoc = await ParkingLocation.findById(facilityId);
+          } catch (e) {}
+        }
+        if (!locationDoc) {
+          locationDoc = await ParkingLocation.findOne({ facilityId });
+        }
+      }
+
+      if (!locationDoc && locName) {
+        locationDoc = await ParkingLocation.findOne({ name: new RegExp(locName, 'i') });
+      }
+
+      if (!locationDoc) {
+        console.warn(`[Payment] ⚠️ Location not found for facilityId="${facilityId}" — using first location in Atlas.`);
+        locationDoc = await ParkingLocation.findOne();
+      }
+
+      console.log(`[Payment] Resolved location: ${locationDoc ? locationDoc.name : 'NOT FOUND'} (id: ${locationDoc ? locationDoc._id : 'N/A'})`);
+
+      // 2. ATOMIC SLOT LOCKING & RACE-CONDITION PREVENTION
       let slotDoc = null;
-      if (locationDoc) slotDoc = await Slot.findOne({ location: locationDoc._id, slotNumber: slotId || 'A4' });
+      const targetSlotNumber = slotId || 'A4';
+      const occupiedUntil = new Date(Date.now() + durationHours * 60 * 60 * 1000);
 
+      if (locationDoc) {
+        // Find slot first or auto-create if missing
+        slotDoc = await Slot.findOne({ location: locationDoc._id, slotNumber: targetSlotNumber });
+
+        if (!slotDoc) {
+          console.log(`[Payment] Slot ${targetSlotNumber} not found for location ${locationDoc.name}. Creating slot in Atlas...`);
+          try {
+            slotDoc = await Slot.create({
+              location: locationDoc._id,
+              slotNumber: targetSlotNumber,
+              status: 'occupied',
+              occupiedUntil
+            });
+          } catch (slotCreateErr) {
+            // Atomic lock attempt if created concurrently
+            slotDoc = await Slot.findOneAndUpdate(
+              { location: locationDoc._id, slotNumber: targetSlotNumber, status: 'available' },
+              { status: 'occupied', occupiedUntil },
+              { new: true }
+            );
+          }
+        } else {
+          // Check if slot has an unexpired active booking
+          const activeBooking = await Booking.findOne({
+            slot: slotDoc._id,
+            status: { $in: ['active', 'upcoming'] }
+          });
+
+          // Allow booking if slot is available, expired, or has no active booking
+          const isSlotFree = slotDoc.status === 'available' ||
+            !activeBooking ||
+            (slotDoc.occupiedUntil && new Date(slotDoc.occupiedUntil) <= new Date());
+
+          if (!isSlotFree) {
+            console.warn(`[Payment] ❌ Atomic lock failed — Slot ${targetSlotNumber} is currently occupied.`);
+            return res.status(409).json({
+              success: false,
+              message: `Slot ${targetSlotNumber} is currently occupied by an active booking. Please select another slot.`
+            });
+          }
+
+          // Atomic update: lock slot for current user
+          slotDoc.status = 'occupied';
+          slotDoc.occupiedUntil = occupiedUntil;
+          await slotDoc.save();
+        }
+      }
+
+      console.log(`[Payment] Locked slot: ${slotDoc ? slotDoc.slotNumber : targetSlotNumber} (Occupied until: ${occupiedUntil.toISOString()})`);
+
+      // Broadcast real-time Socket.IO update to all connected clients
+      const { emitSlotStatusUpdate } = require('../utils/socket');
+      if (slotDoc && locationDoc) {
+        emitSlotStatusUpdate({
+          slotId: slotDoc._id.toString(),
+          slotNumber: slotDoc.slotNumber,
+          status: 'occupied',
+          occupiedUntil: occupiedUntil.toISOString(),
+          facilityId: locationDoc._id.toString()
+        });
+      }
+
+      // 3. Resolve user document or valid user ObjectId from Atlas
+      let userObjectId = undefined;
+      if (user && user._id && mongoose.Types.ObjectId.isValid(user._id.toString())) {
+        userObjectId = user._id;
+      } else if (user && user.email) {
+        try {
+          const UserDoc = require('../models/User');
+          const foundUser = await UserDoc.findOne({ email: user.email.toLowerCase() });
+          if (foundUser) userObjectId = foundUser._id;
+        } catch (e) {}
+      }
+
+      // 4. Create Booking in Atlas
       const newBooking = await Booking.create({
         bookingId,
         entryPin,
-        user: user._id,
+        user: userObjectId,
         userEmail: user.email,
-        location: locationDoc ? locationDoc._id : user._id,
+        location: locationDoc ? locationDoc._id : undefined,
         locationName: locationDoc ? locationDoc.name : locName,
-        slot: slotDoc ? slotDoc._id : user._id,
-        slotNumber: slotId || 'A4',
+        slot: slotDoc ? slotDoc._id : undefined,
+        slotNumber: targetSlotNumber,
         date: new Date().toISOString().split('T')[0],
         durationHours,
-        ratePerHour: amountPaid / durationHours,
+        ratePerHour: durationHours > 0 ? amountPaid / durationHours : amountPaid,
         amountPaid,
-        status: 'upcoming',
+        status: 'active',
         paymentId: razorpay_payment_id || `pay_${Date.now()}`
       });
 
+      console.log(`[Payment] ✅ Booking saved to Atlas: ${newBooking.bookingId}`);
+
+      // 5. Create Transaction in Atlas
       await Transaction.create({
         transactionId: `TXN_${Math.floor(100000 + Math.random() * 900000)}`,
         paymentId: razorpay_payment_id || `pay_${Date.now()}`,
         booking: newBooking._id,
         bookingId,
-        user: user._id,
+        user: userObjectId,
         userEmail: user.email,
         amount: amountPaid,
         paymentMethod: paymentMethod || 'Razorpay (Card)',
         paymentStatus: 'SUCCESSFUL'
       });
 
-      if (slotDoc) {
-        slotDoc.status = 'occupied';
-        await slotDoc.save();
-      }
+      console.log(`[Payment] ✅ Transaction saved to Atlas for booking: ${bookingId}`);
 
       return res.status(200).json({
         success: true,
         message: 'Payment verified and booking saved to MongoDB Atlas!',
         booking: newBooking
       });
+
     } else {
+      // ===== IN-MEMORY FALLBACK (only when Atlas is unreachable) =====
+      console.warn('[Payment] Atlas not connected — saving booking to in-memory store.');
+
       const newBooking = {
         _id: `b_${Date.now()}`,
         bookingId,
@@ -173,11 +281,12 @@ const verifyPayment = async (req, res) => {
         pin: entryPin,
         userEmail: user.email,
         facilityName: locName,
+        locationName: locName,
         slotId: slotId || 'A4',
         slotNumber: slotId || 'A4',
         date: new Date().toISOString().split('T')[0],
         durationHours,
-        ratePerHour: amountPaid / durationHours,
+        ratePerHour: durationHours > 0 ? amountPaid / durationHours : amountPaid,
         amountPaid,
         status: 'upcoming',
         paymentId: razorpay_payment_id || `pay_${Date.now()}`,
@@ -199,27 +308,40 @@ const verifyPayment = async (req, res) => {
         timestamp: new Date()
       });
 
-      const slot = dataStore.slots.find(s => s.slotNumber === (slotId || 'A4'));
-      if (slot) slot.status = 'occupied';
+      const targetSlotNumber = slotId || 'A4';
+      const slot = dataStore.slots.find(s => s.slotNumber === targetSlotNumber || s.id === targetSlotNumber);
+      const occupiedUntil = new Date(Date.now() + durationHours * 60 * 60 * 1000);
+
+      if (slot) {
+        if (slot.status !== 'available') {
+          return res.status(409).json({
+            success: false,
+            message: `Slot ${targetSlotNumber} is currently occupied or reserved. Please select another slot.`
+          });
+        }
+        slot.status = 'occupied';
+        slot.occupiedUntil = occupiedUntil;
+      }
+
+      const { emitSlotStatusUpdate } = require('../utils/socket');
+      emitSlotStatusUpdate({
+        slotId: targetSlotNumber,
+        slotNumber: targetSlotNumber,
+        status: 'occupied',
+        occupiedUntil: occupiedUntil.toISOString(),
+        facilityId: facilityId || 'f1'
+      });
 
       return res.status(200).json({
         success: true,
-        message: 'Payment verified and booking saved (Memory Mode)!',
+        message: 'Payment verified and booking saved to memory!',
         booking: newBooking
       });
     }
   } catch (error) {
-    console.error('Error verifying payment:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during payment verification',
-      error: error.message
-    });
+    console.error('[Payment] Error verifying payment:', error);
+    res.status(500).json({ success: false, message: 'Server error during payment verification', error: error.message });
   }
 };
 
-module.exports = {
-  getKey,
-  createOrder,
-  verifyPayment
-};
+module.exports = { getKey, createOrder, verifyPayment };

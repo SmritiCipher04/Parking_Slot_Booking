@@ -7,6 +7,8 @@ const bcrypt = require('bcryptjs');
 
 // Pre-hashed default user (password: 'password123')
 const defaultHashedPassword = bcrypt.hashSync('password123', 10);
+// Pre-hashed default admin (username: 'admin@example.com', password: '54321')
+const defaultAdminHashedPassword = bcrypt.hashSync('54321', 10);
 
 const users = [
   {
@@ -19,13 +21,20 @@ const users = [
   }
 ];
 
-const admins = [];
+const admins = [
+  {
+    _id: 'a1',
+    username: 'admin@example.com',
+    password: defaultAdminHashedPassword,
+    createdAt: new Date('2026-01-01')
+  }
+];
 
 const facilities = [
-  { _id: 'f1', facilityId: 'f1', name: 'City Mall Parking', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 20, ratePerHour: 20 },
-  { _id: 'f2', facilityId: 'f2', name: 'Railway Station Parking', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 15, ratePerHour: 15 },
-  { _id: 'f3', facilityId: 'f3', name: 'ADTU Campus Parking', address: 'Sonapur, Assam', totalSlots: 20, pricePerHour: 10, ratePerHour: 10 },
-  { _id: 'f4', facilityId: 'f4', name: 'GS Road Parking Complex', address: 'Guwahati, Assam', totalSlots: 20, pricePerHour: 25, ratePerHour: 25 }
+  { _id: 'f1', facilityId: 'f1', name: 'City Mall Parking', address: 'GS Road, Christian Basti, Guwahati', totalSlots: 20, pricePerHour: 20, ratePerHour: 20, latitude: 26.1445, longitude: 91.7362 },
+  { _id: 'f2', facilityId: 'f2', name: 'Railway Station Parking', address: 'Paltan Bazar, Guwahati', totalSlots: 20, pricePerHour: 15, ratePerHour: 15, latitude: 26.1818, longitude: 91.7510 },
+  { _id: 'f3', facilityId: 'f3', name: 'ADTU Campus Parking', address: 'Sonapur, Guwahati, Assam', totalSlots: 20, pricePerHour: 10, ratePerHour: 10, latitude: 26.1158, longitude: 91.9790 },
+  { _id: 'f4', facilityId: 'f4', name: 'GS Road Parking Complex', address: 'Bhangagarh, Guwahati', totalSlots: 20, pricePerHour: 25, ratePerHour: 25, latitude: 26.1550, longitude: 91.7650 }
 ];
 
 const generate20Slots = (facilityId, price, bookedIndexes = []) => {
@@ -44,6 +53,7 @@ const generate20Slots = (facilityId, price, bookedIndexes = []) => {
         location: facilityId,
         facilityId: facilityId,
         status: isBooked ? 'occupied' : 'available',
+        occupiedUntil: isBooked ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null,
         price: price
       });
       index++;
@@ -62,6 +72,14 @@ const slots = [
 
 const bookings = [];
 const transactions = [];
+const deletedAccountLogs = [];
+
+const subscriptionPlans = [
+  { _id: 'sp1', name: 'City Mall Weekly Pass', type: 'weekly', durationDays: 7, price: 99, savingsPercentage: 30, facilityId: 'f1', locationName: 'City Mall Parking', isActive: true },
+  { _id: 'sp2', name: 'City Mall Monthly Pass', type: 'monthly', durationDays: 30, price: 349, savingsPercentage: 40, facilityId: 'f1', locationName: 'City Mall Parking', isActive: true }
+];
+
+const userSubscriptions = [];
 
 // Helper functions for memory fallback
 const findUserByEmail = async (email) => {
@@ -98,6 +116,9 @@ module.exports = {
   slots,
   bookings,
   transactions,
+  deletedAccountLogs,
+  subscriptionPlans,
+  userSubscriptions,
   findUserByEmail,
   createUser,
   resetUserPasswordInMemory

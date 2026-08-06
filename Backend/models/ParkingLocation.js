@@ -1,7 +1,7 @@
 /**
  * ParkingLocation Mongoose Model
- * Collection: parkingLocations
- * Fields: name, address, total slots, price/hour
+ * Collection: parkinglocations
+ * Fields: name, address, totalSlots, pricePerHour, latitude, longitude
  */
 
 const mongoose = require('mongoose');
@@ -25,6 +25,16 @@ const parkingLocationSchema = new mongoose.Schema({
   pricePerHour: {
     type: Number,
     required: [true, 'Price per hour is required']
+  },
+  latitude: {
+    type: Number,
+    required: false,
+    default: 26.1445
+  },
+  longitude: {
+    type: Number,
+    required: false,
+    default: 91.7362
   },
   createdAt: {
     type: Date,

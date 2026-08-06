@@ -1,17 +1,21 @@
 {
   "name": "parking-slot-booking",
   "version": "1.0.0",
-  "description": "Full Stack Parking Slot Booking System (ExcuseME) with Razorpay Payment Integration",
+  "description": "Full Stack Parking Slot Booking System (ExcuseME) - React.js SPA Frontend & Node.js/Express/MongoDB Backend",
   "main": "Backend/server.js",
   "scripts": {
     "start": "node Backend/server.js",
     "server": "node Backend/server.js",
-    "dev": "nodemon Backend/server.js",
-    "install-backend": "cd Backend && npm install"
+    "client": "npm run dev --prefix Frontend",
+    "dev": "node Backend/server.js",
+    "build:frontend": "npm run build --prefix Frontend",
+    "install-all": "npm install && cd Backend && npm install && cd ../Frontend && npm install"
   },
   "keywords": [
     "parking",
     "booking",
+    "react",
+    "vite",
     "razorpay",
     "fullstack",
     "express",

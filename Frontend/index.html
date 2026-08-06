@@ -1,68 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home - ExcuseME Parking</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExcuseME - Parking Slot Booking System</title>
 </head>
 <body>
-
-<header></header>
-
-<div class="container">
-  <h2 id="welcome-heading">Find Parking Near You</h2>
-  <p class="subtitle">Search for nearby parking facilities, view real-time slot availability, and book slots in advance.</p>
-
-  <!-- Facility Search Form -->
-  <form id="search-form" onsubmit="return false;" style="margin-bottom: 32px;">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-      <div class="form-group" style="margin-bottom: 0;">
-        <label for="search-location">Location / Facility</label>
-        <input type="text" id="search-location" placeholder="e.g. City Mall, Guwahati">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 0;">
-        <label for="search-date">Date</label>
-        <input type="date" id="search-date">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 0;">
-        <label for="search-time">Arrival Time</label>
-        <input type="time" id="search-time">
-      </div>
-    </div>
-    <button type="button" id="search-btn" class="btn" style="margin-top: 16px;">🔍 Search Facilities</button>
-  </form>
-
-  <div class="info-box">
-    <h3>Available Parking Facilities</h3>
-    <p style="margin-bottom: 12px; font-size: 14px;">Select a facility below to view slot-wise availability (20 slots per location):</p>
-    
-    <table id="facilities-table">
-      <thead>
-        <tr>
-          <th>Facility Name</th>
-          <th>Location</th>
-          <th>Total Slots</th>
-          <th>Price / Hour</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Dynamically rendered via home-page.js -->
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<footer>
-  &copy; 2026 Parking Slot Booking System | Smriti Sarkar | ADTU/1/2024-28/BCSS/158
-</footer>
-
-<script src="js/storage.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/navbar.js"></script>
-<script src="js/home-page.js"></script>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

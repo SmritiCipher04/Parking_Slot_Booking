@@ -52,6 +52,7 @@ const getBookingById = async (req, res) => {
 const cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
+    const { emitSlotStatusUpdate } = require('../utils/socket');
 
     if (isDbConnected()) {
       const booking = await Booking.findOneAndUpdate(
@@ -61,7 +62,19 @@ const cancelBooking = async (req, res) => {
       );
       if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-      await Slot.findByIdAndUpdate(booking.slot, { status: 'available' });
+      if (booking.slot) {
+        const slotDoc = await Slot.findByIdAndUpdate(booking.slot, { status: 'available', occupiedUntil: null }, { new: true });
+        if (slotDoc) {
+          emitSlotStatusUpdate({
+            slotId: slotDoc._id.toString(),
+            slotNumber: slotDoc.slotNumber,
+            status: 'available',
+            occupiedUntil: null,
+            facilityId: slotDoc.location.toString()
+          });
+        }
+      }
+
       return res.status(200).json({ success: true, message: `Booking ${bookingId} cancelled successfully.`, data: booking });
     } else {
       const booking = dataStore.bookings.find(b => b.bookingId === bookingId);
@@ -69,7 +82,17 @@ const cancelBooking = async (req, res) => {
 
       booking.status = 'cancelled';
       const slot = dataStore.slots.find(s => s.slotNumber === booking.slotNumber || s.id === booking.slotNumber);
-      if (slot) slot.status = 'available';
+      if (slot) {
+        slot.status = 'available';
+        slot.occupiedUntil = null;
+        emitSlotStatusUpdate({
+          slotId: slot._id || slot.slotNumber,
+          slotNumber: slot.slotNumber,
+          status: 'available',
+          occupiedUntil: null,
+          facilityId: booking.location || 'f1'
+        });
+      }
 
       return res.status(200).json({ success: true, message: `Booking ${bookingId} cancelled successfully.`, data: booking });
     }
