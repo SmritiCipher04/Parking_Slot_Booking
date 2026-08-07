@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { GoogleMapsProvider } from './context/GoogleMapsContext';
+import { ThemeProvider } from './context/ThemeContext';
 import MapErrorBoundary from './components/MapErrorBoundary';
 import './styles/style.css';
 
@@ -27,7 +28,8 @@ import PartnerDashboardPage from './pages/PartnerDashboardPage';
 
 function App() {
   return (
-    <ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
       <GoogleMapsProvider>
         <AuthProvider>
           <Router>
@@ -54,7 +56,8 @@ function App() {
           </Router>
         </AuthProvider>
       </GoogleMapsProvider>
-    </ToastProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

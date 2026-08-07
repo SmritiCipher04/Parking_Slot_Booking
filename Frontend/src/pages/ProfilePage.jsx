@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
@@ -8,6 +9,7 @@ import UserAvatar from '../components/UserAvatar';
 
 const ProfilePage = () => {
   const { user, updateUserProfile, updateUserState, changePassword, logout, getAuthHeaders } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -392,6 +394,31 @@ const ProfilePage = () => {
               Save Profile Changes
             </button>
           </form>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
+
+          {/* ===== SETTINGS / APPEARANCE SECTION ===== */}
+          <h3 style={{ marginBottom: '4px' }}>Appearance</h3>
+          <p className="subtitle" style={{ fontSize: '13px', marginBottom: '14px' }}>Customise how ExcuseME looks for you.</p>
+
+          <div className="theme-toggle-row">
+            <div className="theme-toggle-label">
+              <span style={{ fontSize: '22px', lineHeight: 1 }}>{isDark ? '🌙' : '☀️'}</span>
+              <div>
+                <div className="theme-toggle-label-text">{isDark ? 'Dark Mode' : 'Light Mode'}</div>
+                <div className="theme-toggle-label-sub">{isDark ? 'Switch to light theme' : 'Switch to dark theme'}</div>
+              </div>
+            </div>
+            <label className="theme-switch" aria-label="Toggle dark mode">
+              <input
+                type="checkbox"
+                id="theme-toggle"
+                checked={isDark}
+                onChange={toggleTheme}
+              />
+              <span className="theme-switch-slider"></span>
+            </label>
+          </div>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
 
