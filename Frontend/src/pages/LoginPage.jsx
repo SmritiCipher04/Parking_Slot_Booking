@@ -5,7 +5,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 import Modal from '../components/Modal';
-import GoogleLoginButton from '../components/GoogleLoginButton';
 
 const LoginPage = () => {
   const { user, login, resetPassword } = useAuth();
@@ -135,14 +134,6 @@ const LoginPage = () => {
 
           <button type="submit" className="btn" style={{ width: '100%' }}>Sign In</button>
         </form>
-
-        <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
-          <div style={{ flex: 1, borderBottom: '1px solid var(--border-color)' }}></div>
-          <span style={{ padding: '0 12px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>OR</span>
-          <div style={{ flex: 1, borderBottom: '1px solid var(--border-color)' }}></div>
-        </div>
-
-        <GoogleLoginButton />
 
         <p className="small-note">Don't have an account? <Link to="/register">Register here</Link></p>
       </div>
