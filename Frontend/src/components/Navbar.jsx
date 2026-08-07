@@ -132,7 +132,7 @@ const Navbar = () => {
         </div>
 
         <div className="nav-center">
-          <Link to={user ? "/" : "/login"} className="brand-logo">
+          <Link to="/" className="brand-logo">
             <h1>ExcuseME</h1>
           </Link>
         </div>

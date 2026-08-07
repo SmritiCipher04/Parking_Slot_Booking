@@ -59,12 +59,7 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // 1. Fetch facilities from backend API
+    // Public Access: Fetch facilities for all visitors on initial page load
     const fetchFacilities = async () => {
       try {
         const res = await fetch('/api/locations');
@@ -79,7 +74,7 @@ const HomePage = () => {
 
     fetchFacilities();
     requestUserLocation();
-  }, [user, navigate]);
+  }, []);
 
   // Compute distances if user location is available
   const processedFacilities = facilities.map(f => {
