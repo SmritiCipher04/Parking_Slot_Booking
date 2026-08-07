@@ -192,7 +192,7 @@ const Navbar = () => {
             </Link>
 
             {user && (
-              <Link to="/my-subscriptions" className="plus-subnav-btn" style={{ backgroundColor: '#f1f5f9', color: '#1e293b', borderColor: '#cbd5e1' }}>
+              <Link to="/my-subscriptions" className="plus-subnav-btn" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}>
                 My Active Passes
               </Link>
             )}

@@ -111,7 +111,7 @@ const PartnerDashboardPage = () => {
             <div style={{ overflowX: 'auto' }}>
               <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+                  <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px' }}>Facility Name</th>
                     <th style={{ padding: '10px 12px' }}>Address</th>
                     <th style={{ padding: '10px 12px' }}>Slots</th>
@@ -198,7 +198,7 @@ const PartnerDashboardPage = () => {
             <div style={{ overflowX: 'auto' }}>
               <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+                  <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px' }}>Booking ID</th>
                     <th style={{ padding: '10px 12px' }}>User</th>
                     <th style={{ padding: '10px 12px' }}>Slot</th>

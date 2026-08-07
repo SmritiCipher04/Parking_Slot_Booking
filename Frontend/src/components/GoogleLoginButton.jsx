@@ -96,9 +96,9 @@ const GoogleLoginButton = ({ onSuccessCallback }) => {
         className="google-custom-login-btn"
         style={{
           width: '100%',
-          backgroundColor: '#ffffff',
-          color: '#3c4043',
-          border: '1px solid #dadce0',
+          backgroundColor: 'var(--bg-card)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-color)',
           borderRadius: '24px',
           padding: '10px 16px',
           fontSize: '14px',

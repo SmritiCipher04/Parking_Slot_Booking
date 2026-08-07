@@ -342,7 +342,7 @@ const ExcuseMePlusPage = () => {
           </p>
 
           {activeCheckoutPlan && (
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
+            <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
               <div><strong>Pass Name:</strong> <span>{activeCheckoutPlan.name}</span></div>
               <div><strong>Location:</strong> <span>{activeCheckoutPlan.locationName}</span></div>
               <div><strong>Price Due:</strong> <strong style={{ color: '#2563eb' }}>Rs. {activeCheckoutPlan.price}</strong></div>

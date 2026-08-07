@@ -864,10 +864,10 @@ const AdminDashboardPage = () => {
               </p>
 
               <h4 style={{ fontSize: '15px', marginTop: '16px', marginBottom: '8px' }}>📋 Retained Bookings ({(selectedLog.retainedBookings || []).length})</h4>
-              <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px', fontSize: '13px', background: '#f8fafc' }}>
+              <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px', fontSize: '13px', background: 'var(--bg-main)' }}>
                 {(selectedLog.retainedBookings || []).length > 0 ? (
                   selectedLog.retainedBookings.map((b, idx) => (
-                    <div key={idx} style={{ padding: '6px 0', borderBottom: idx < selectedLog.retainedBookings.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                    <div key={idx} style={{ padding: '6px 0', borderBottom: idx < selectedLog.retainedBookings.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
                       <strong>{b.bookingId}</strong> | {b.locationName || b.facilityName} | Slot: <strong>{b.slotNumber || b.slotId}</strong> | Date: {b.date} | Amount: Rs. {b.amountPaid}
                     </div>
                   ))
@@ -877,7 +877,7 @@ const AdminDashboardPage = () => {
               </div>
 
               <h4 style={{ fontSize: '15px', marginTop: '16px', marginBottom: '8px' }}>💳 Retained Transactions ({(selectedLog.retainedTransactions || []).length})</h4>
-              <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px', fontSize: '13px', background: '#f8fafc' }}>
+              <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '8px', fontSize: '13px', background: 'var(--bg-main)' }}>
                 {(selectedLog.retainedTransactions || []).length > 0 ? (
                   selectedLog.retainedTransactions.map((t, idx) => (
                     <div key={idx} style={{ padding: '6px 0', borderBottom: idx < selectedLog.retainedTransactions.length - 1 ? '1px solid #e2e8f0' : 'none' }}>

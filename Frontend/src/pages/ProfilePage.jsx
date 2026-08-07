@@ -264,7 +264,7 @@ const ProfilePage = () => {
 
           {/* Minimal Profile Picture Action Control */}
           <div style={{
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--bg-main)',
             border: '1px solid var(--border-color)',
             borderRadius: '10px',
             padding: '16px',
@@ -292,7 +292,7 @@ const ProfilePage = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'var(--bg-card)',
                     border: '1px solid var(--border-color)',
                     padding: '8px 12px',
                     borderRadius: '6px',
@@ -329,7 +329,7 @@ const ProfilePage = () => {
                       type="button"
                       className="btn btn-sm btn-secondary"
                       onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                      style={{ fontSize: '12px', padding: '6px 14px', backgroundColor: '#ffffff' }}
+                      style={{ fontSize: '12px', padding: '6px 14px' }}
                     >
                       Choose New Photo
                     </button>
@@ -375,7 +375,7 @@ const ProfilePage = () => {
                 id="prof-email"
                 value={email}
                 readOnly
-                style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
+                style={{ backgroundColor: 'var(--bg-main)', cursor: 'not-allowed' }}
               />
             </div>
 

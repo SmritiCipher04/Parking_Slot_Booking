@@ -150,7 +150,7 @@ const ParkingMap = ({
 
   if (!isLoaded) {
     return (
-      <div className="parking-map-wrapper" style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f8fafc', color: '#64748b' }}>
+      <div className="parking-map-wrapper" style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--bg-main)', color: 'var(--text-secondary)' }}>
         <p style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>Loading Google Maps Engine...</p>
       </div>
     );
@@ -161,7 +161,7 @@ const ParkingMap = ({
       {/* Top Control Bar with Google Places Autocomplete, Location Button, and Magnifying Glass Zoom Controls */}
       <div style={{
         padding: '12px 16px',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--bg-card)',
         borderBottom: '1px solid var(--border-color)',
         display: 'flex',
         gap: '12px',

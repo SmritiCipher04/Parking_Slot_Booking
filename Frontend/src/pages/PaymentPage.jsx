@@ -285,7 +285,7 @@ const PaymentPage = () => {
         <h3>Offline Payment Gateway Simulator</h3>
         <p className="subtitle" style={{ fontSize: '13px', marginBottom: '16px' }}>Simulate a successful payment for testing</p>
 
-        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
+        <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
           <div><strong>Location:</strong> <span id="modal-facility">{facilityName}</span></div>
           <div><strong>Slot:</strong> <span id="modal-slot">{slotId}</span></div>
           <div><strong>Amount Due:</strong> <strong id="modal-total" style={{ color: 'var(--primary-blue)' }}>Rs. {totalAmount}</strong></div>
