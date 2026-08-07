@@ -1392,3 +1392,140 @@ body.dark-theme .modal-content {
 body.dark-theme .dropdown-item.text-danger:hover {
   background-color: #2d0d0d !important;
 }
+
+/* ===========================================================
+   DARK THEME — Complete Button & Interactive Element Coverage
+   =========================================================== */
+
+/* --- btn-secondary (all sizes, all pages) --- */
+body.dark-theme .btn-secondary,
+body.dark-theme .btn.btn-secondary {
+  background-color: #1e2130 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-theme .btn-secondary:hover,
+body.dark-theme .btn.btn-secondary:hover {
+  background-color: #2a2d44 !important;
+  border-color: var(--border-focus) !important;
+  color: var(--text-primary) !important;
+}
+
+/* --- btn-secondary with inline white backgroundColor override --- */
+body.dark-theme button[style*="background-color: rgb(255, 255, 255)"],
+body.dark-theme button[style*="background-color: #ffffff"],
+body.dark-theme button[style*="backgroundColor: '#ffffff'"],
+body.dark-theme a[style*="background-color: rgb(255, 255, 255)"],
+body.dark-theme a[style*="background-color: #ffffff"],
+body.dark-theme a[style*="background-color: white"],
+body.dark-theme button[style*="background-color: white"] {
+  background-color: #1e2130 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* --- plus-subnav-btn (PLUS bar action buttons) --- */
+body.dark-theme .plus-subnav-btn {
+  background-color: #1a1d27 !important;
+  color: #7ba4f7 !important;
+  border-color: #2a3a6e !important;
+}
+
+body.dark-theme .plus-subnav-btn:hover {
+  background-color: var(--primary-blue) !important;
+  color: #ffffff !important;
+  border-color: var(--primary-blue) !important;
+}
+
+/* --- hamburger / menu toggle button --- */
+body.dark-theme .hamburger-btn {
+  background-color: #1a1d27 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-theme .hamburger-btn:hover {
+  background-color: var(--primary-light) !important;
+  border-color: var(--primary-blue) !important;
+  color: var(--primary-blue) !important;
+}
+
+/* --- admin-nav-btn --- */
+body.dark-theme .admin-nav-btn {
+  background-color: #1a1d27 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-theme .admin-nav-btn:hover {
+  background-color: #232640 !important;
+  color: var(--primary-blue) !important;
+}
+
+/* --- user-badge (navbar avatar chip) --- */
+body.dark-theme .user-badge {
+  background-color: #1a1d27 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* --- "Sort by Nearest" toggle button (HomePage inline white) --- */
+body.dark-theme button[style*="background-color: rgb(255, 255, 255)"],
+body.dark-theme button[style*="background-color: #fff"] {
+  background-color: #1e2130 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* --- Google Login button white wrapper --- */
+body.dark-theme .google-login-btn,
+body.dark-theme [class*="google"][style*="background-color: rgb(255, 255, 255)"],
+body.dark-theme [class*="google"][style*="background-color: #ffffff"] {
+  background-color: #1e2130 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* --- "My Active Passes" PLUS sub-navbar pill button --- */
+body.dark-theme .plus-subnav-btn[style*="background-color: #f1f5f9"],
+body.dark-theme [style*="background-color: #f1f5f9"][style*="color: #1e293b"] {
+  background-color: #1a1d27 !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* --- Remove Photo / text-link style buttons --- */
+body.dark-theme button[style*="background: none"],
+body.dark-theme button[style*="background: transparent"] {
+  color: var(--text-secondary);
+}
+
+/* --- Cancel/close icon buttons in modals --- */
+body.dark-theme .modal-close,
+body.dark-theme button[style*="background: none"][style*="border: none"] {
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+}
+
+body.dark-theme .modal-close:hover {
+  background-color: #232640 !important;
+  color: var(--text-primary) !important;
+}
+
+/* --- "Choose New Photo" and similar secondary action buttons with inline white bg --- */
+body.dark-theme .btn.btn-sm.btn-secondary[style],
+body.dark-theme .btn.btn-secondary[style] {
+  background-color: #1e2130 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* --- ExcuseME PLUS hero "My Active Passes" white button --- */
+body.dark-theme a.btn[style*="background-color: white"],
+body.dark-theme a.btn[style*="background-color: #ffffff"],
+body.dark-theme a.btn[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #1e2130 !important;
+  color: var(--primary-blue) !important;
+  border: 1px solid var(--border-color) !important;
+}
