@@ -8,13 +8,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   GoogleMap,
-  useJsApiLoader,
   Marker,
   InfoWindow,
   Autocomplete
 } from '@react-google-maps/api';
-
-const GOOGLE_MAP_LIBRARIES = ['places'];
+import { useGoogleMaps } from '../context/GoogleMapsContext';
 
 // Royal Blue Custom Google Maps Styling (Muted, elegant palette)
 const ROYAL_MAP_STYLES = [
@@ -64,64 +62,14 @@ const ParkingMap = ({
 }) => {
   const navigate = useNavigate();
 
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAP_API || '');
+  // Consume the single shared Maps loader from GoogleMapsContext (loaded once at app level)
+  const { isLoaded, loadError } = useGoogleMaps();
+
   const [selectedFacility, setSelectedFacility] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
 
   const autocompleteRef = useRef(null);
   const searchInputRef = useRef(null);
-
-  // Fetch Maps API Key from backend if not set in frontend env
-  useEffect(() => {
-    // Catch Google Maps authentication failure to prevent alert popup dialogs
-    window.gm_authFailure = () => {
-      console.warn('[Google Maps] gm_authFailure caught. Suppressing error modal overlay.');
-      removeGoogleErrorOverlay();
-    };
-
-    const cleanupInterval = setInterval(removeGoogleErrorOverlay, 500);
-
-    if (!apiKey) {
-      fetch('/api/config/maps-key')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.key) {
-            setApiKey(data.key);
-          }
-        })
-        .catch(err => console.error('Error fetching Google Maps key:', err));
-    }
-
-    return () => clearInterval(cleanupInterval);
-  }, [apiKey]);
-
-  const removeGoogleErrorOverlay = () => {
-    if (typeof document === 'undefined') return;
-    const selectors = [
-      '.gm-err-container',
-      '.gm-err-content',
-      '.gm-err-title',
-      '.gm-err-message',
-      'div[style*="z-index: 1000000"]',
-      'div[style*="z-index: 1000001"]'
-    ];
-    selectors.forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => {
-        if (el.innerText && el.innerText.includes("can't load Google Maps correctly")) {
-          el.style.display = 'none';
-          el.remove();
-        }
-      });
-    });
-  };
-
-  // Load Google Maps JS API script
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: apiKey,
-    libraries: GOOGLE_MAP_LIBRARIES,
-    preventGoogleFontsLoading: false
-  });
 
   const onMapLoad = useCallback((map) => {
     setMapInstance(map);
