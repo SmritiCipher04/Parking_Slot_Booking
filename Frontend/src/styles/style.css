@@ -1265,3 +1265,130 @@ body.dark-theme [style*="backgroundColor: '#f8fafc'"],
 body.dark-theme [style*="background: '#f8fafc'"] {
   background-color: #1a1d27 !important;
 }
+
+/* ============================================================
+   DARK THEME — Class-level overrides for hardcoded bg colors
+   These target CSS class rules that use fixed hex values.
+   ============================================================ */
+
+/* Table: header row */
+body.dark-theme th {
+  background-color: #1e2130 !important;
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Table: alternating even rows */
+body.dark-theme tr:nth-child(even) td {
+  background-color: #181b27 !important;
+}
+
+/* Table: odd rows (base) */
+body.dark-theme tbody tr td {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+/* Table: hover */
+body.dark-theme tbody tr:hover td {
+  background-color: #1e2130 !important;
+}
+
+/* Table: border */
+body.dark-theme table {
+  border-color: var(--border-color);
+}
+
+/* Dropdown menu */
+body.dark-theme .dropdown-menu {
+  background-color: #1a1d27 !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.5) !important;
+}
+
+body.dark-theme .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+body.dark-theme .dropdown-item:hover {
+  background-color: #232640 !important;
+  color: var(--primary-blue) !important;
+}
+
+body.dark-theme .dropdown-divider {
+  background-color: var(--border-color) !important;
+}
+
+body.dark-theme .dropdown-header {
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Info box */
+body.dark-theme .info-box {
+  background-color: #1e2130 !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Stat cards */
+body.dark-theme .stat-card {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-theme .stat-card h4 {
+  color: var(--text-secondary) !important;
+}
+
+/* Btn secondary */
+body.dark-theme .btn-secondary {
+  background-color: #1e2130 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-theme .btn-secondary:hover {
+  background-color: #232640 !important;
+  border-color: var(--border-focus) !important;
+}
+
+/* Form inputs */
+body.dark-theme input[type="text"],
+body.dark-theme input[type="email"],
+body.dark-theme input[type="password"],
+body.dark-theme input[type="tel"],
+body.dark-theme input[type="date"],
+body.dark-theme input[type="time"],
+body.dark-theme input[type="number"],
+body.dark-theme select,
+body.dark-theme textarea {
+  background-color: #1e2130 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-theme input:focus,
+body.dark-theme select:focus,
+body.dark-theme textarea:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(61, 90, 241, 0.15) !important;
+  background-color: #232640 !important;
+}
+
+/* Map wrapper */
+body.dark-theme .parking-map-wrapper {
+  background-color: #1a1d27 !important;
+  border-color: var(--border-color) !important;
+}
+
+/* modal-content bg */
+body.dark-theme .modal-content {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Danger zone items hover */
+body.dark-theme .dropdown-item.text-danger:hover {
+  background-color: #2d0d0d !important;
+}
