@@ -1150,15 +1150,29 @@ body.dark-theme .admin-nav-btn:hover {
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }
 
-/* Icon inside slider */
-.theme-switch-slider::after {
-  content: '☀️';
+/* Modern Vector Icons inside slider track */
+.theme-icon {
   position: absolute;
-  right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 11px;
-  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1;
+}
+
+.theme-icon.sun-icon {
+  right: 7px;
+  color: #64748b;
+  opacity: 0.85;
+}
+
+.theme-icon.moon-icon {
+  left: 7px;
+  color: #94a3b8;
+  opacity: 0.4;
 }
 
 .theme-switch input:checked + .theme-switch-slider {
@@ -1169,10 +1183,14 @@ body.dark-theme .admin-nav-btn:hover {
   transform: translateX(24px);
 }
 
-.theme-switch input:checked + .theme-switch-slider::after {
-  content: '🌙';
-  right: auto;
-  left: 6px;
+.theme-switch input:checked + .theme-switch-slider .sun-icon {
+  opacity: 0.4;
+  color: #94a3b8;
+}
+
+.theme-switch input:checked + .theme-switch-slider .moon-icon {
+  opacity: 0.95;
+  color: #ffffff;
 }
 
 .theme-switch input:focus-visible + .theme-switch-slider {
