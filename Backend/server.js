@@ -42,6 +42,12 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Initialize Database connection to MongoDB Atlas
 connectDB();
 
@@ -56,7 +62,7 @@ const frontendPath = path.join(__dirname, '../Frontend');
 const staticPath = fs.existsSync(distPath) ? distPath : frontendPath;
 
 app.use(express.static(staticPath));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadsDir));
 
 // DB Status check middleware for /api routes
 app.use('/api', (req, res, next) => {
