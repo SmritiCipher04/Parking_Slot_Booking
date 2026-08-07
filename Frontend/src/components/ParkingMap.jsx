@@ -59,6 +59,7 @@ const ParkingMap = ({
   zoom = 13,
   selectedFacilityId = null,
   onSelectFacility = () => {},
+  onSearchLocation = () => {},
   onUseCurrentLocation = () => {}
 }) => {
   const navigate = useNavigate();
@@ -99,12 +100,18 @@ const ParkingMap = ({
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
-      if (place && place.geometry && place.geometry.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        if (mapInstance) {
-          mapInstance.panTo({ lat, lng });
-          mapInstance.setZoom(15);
+      if (place) {
+        const query = place.name || place.formatted_address || '';
+        if (query && onSearchLocation) {
+          onSearchLocation(query);
+        }
+        if (place.geometry && place.geometry.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          if (mapInstance) {
+            mapInstance.panTo({ lat, lng });
+            mapInstance.setZoom(15);
+          }
         }
       }
     }

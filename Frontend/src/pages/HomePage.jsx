@@ -99,11 +99,15 @@ const HomePage = () => {
     };
   });
 
-  // Filter facilities by search term
-  let filteredFacilities = processedFacilities.filter(f =>
-    f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (f.address || f.location || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter facilities by search term (tokens matching name or address)
+  let filteredFacilities = processedFacilities;
+  if (searchTerm.trim() !== '') {
+    const tokens = searchTerm.toLowerCase().trim().split(/\s+/);
+    filteredFacilities = processedFacilities.filter(f => {
+      const targetText = `${f.name} ${f.address || ''} ${f.location || ''}`.toLowerCase();
+      return tokens.every(token => targetText.includes(token));
+    });
+  }
 
   // Sort by nearest if toggled
   if (sortByNearest && userLocation) {
@@ -131,15 +135,39 @@ const HomePage = () => {
 
         {/* Search & Location Controls */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '220px' }}>
+          <div style={{ flex: 1, minWidth: '220px', position: 'relative' }}>
             <label htmlFor="search-location">Search Location / Facility</label>
-            <input
-              type="text"
-              id="search-location"
-              placeholder="e.g. City Mall, GS Road..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                id="search-location"
+                placeholder="e.g. City Mall, GS Road, Dispur..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ paddingRight: searchTerm ? '32px' : '12px' }}
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  title="Clear search"
+                  onClick={() => setSearchTerm('')}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    fontSize: '14px'
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ minWidth: '180px' }}>
@@ -178,7 +206,9 @@ const HomePage = () => {
         {/* Status Indicator */}
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{locationStatus}</span>
-          <span>Showing {filteredFacilities.length} parking facilities</span>
+          <span>
+            {searchTerm ? `Matching "${searchTerm}": ` : ''}Showing {filteredFacilities.length} parking facilities
+          </span>
         </div>
 
         {/* Synced Interactive Map & Facilities Component */}
@@ -189,6 +219,7 @@ const HomePage = () => {
           zoom={userLocation ? 14 : 13}
           selectedFacilityId={selectedFacilityId}
           onSelectFacility={handleFacilitySelect}
+          onSearchLocation={(query) => setSearchTerm(query)}
           onUseCurrentLocation={requestUserLocation}
         />
 
