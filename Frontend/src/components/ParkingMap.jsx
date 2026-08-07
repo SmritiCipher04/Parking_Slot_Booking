@@ -73,17 +73,47 @@ const ParkingMap = ({
 
   // Fetch Maps API Key from backend if not set in frontend env
   useEffect(() => {
-    if (apiKey) return;
+    // Catch Google Maps authentication failure to prevent alert popup dialogs
+    window.gm_authFailure = () => {
+      console.warn('[Google Maps] gm_authFailure caught. Suppressing error modal overlay.');
+      removeGoogleErrorOverlay();
+    };
 
-    fetch('/api/config/maps-key')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.key) {
-          setApiKey(data.key);
-        }
-      })
-      .catch(err => console.error('Error fetching Google Maps key:', err));
+    const cleanupInterval = setInterval(removeGoogleErrorOverlay, 500);
+
+    if (!apiKey) {
+      fetch('/api/config/maps-key')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.key) {
+            setApiKey(data.key);
+          }
+        })
+        .catch(err => console.error('Error fetching Google Maps key:', err));
+    }
+
+    return () => clearInterval(cleanupInterval);
   }, [apiKey]);
+
+  const removeGoogleErrorOverlay = () => {
+    if (typeof document === 'undefined') return;
+    const selectors = [
+      '.gm-err-container',
+      '.gm-err-content',
+      '.gm-err-title',
+      '.gm-err-message',
+      'div[style*="z-index: 1000000"]',
+      'div[style*="z-index: 1000001"]'
+    ];
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (el.innerText && el.innerText.includes("can't load Google Maps correctly")) {
+          el.style.display = 'none';
+          el.remove();
+        }
+      });
+    });
+  };
 
   // Load Google Maps JS API script
   const { isLoaded, loadError } = useJsApiLoader({

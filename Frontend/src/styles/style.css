@@ -912,3 +912,23 @@ footer {
   }
 }
 
+/* ---- Google Maps Error Modal Popup Suppressor ---- */
+.gm-err-container,
+.gm-err-content,
+.gm-err-icon,
+.gm-err-title,
+.gm-err-message,
+div[style*="z-index: 1000000"],
+div[style*="z-index: 1000001"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.gm-style-cc + div,
+.gm-style div[style*="background-color: white"][style*="box-shadow"] {
+  display: none !important;
+}
+
+
