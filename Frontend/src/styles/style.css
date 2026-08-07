@@ -1179,3 +1179,89 @@ body.dark-theme .admin-nav-btn:hover {
   outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
+
+/* ---- Dark Mode: Modal overlay and content ---- */
+body.dark-theme .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+body.dark-theme .modal-content {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.6);
+}
+
+body.dark-theme .modal-close {
+  color: var(--text-secondary);
+}
+
+body.dark-theme .modal-close:hover {
+  color: var(--text-primary);
+  background-color: #232640;
+}
+
+/* ---- Dark Mode: <code> PIN badges ---- */
+body.dark-theme code {
+  background-color: var(--bg-main) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* ---- Dark Mode: Partner/Admin table header rows ---- */
+body.dark-theme tr[style*="background-color: #f8fafc"],
+body.dark-theme tr[style*="background-color: rgb(248, 250, 252)"] {
+  background-color: #1e2130 !important;
+}
+
+/* ---- Dark Mode: Admin table hardcoded white bg ---- */
+body.dark-theme table[style*="background-color: #ffffff"],
+body.dark-theme table[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: var(--bg-card) !important;
+}
+
+/* ---- Dark Mode: Delete / danger zone box ---- */
+body.dark-theme [style*="background-color: rgb(255, 245, 245)"],
+body.dark-theme [style*="background-color: #fff5f5"] {
+  background-color: #2d0d0d !important;
+}
+
+body.dark-theme [style*="background-color: rgb(254, 226, 226)"],
+body.dark-theme [style*="background-color: #fee2e2"] {
+  background-color: #2d0d0d !important;
+}
+
+/* ---- Dark Mode: hr dividers ---- */
+body.dark-theme hr {
+  border-top-color: var(--border-color) !important;
+}
+
+/* ---- Dark Mode: btn-secondary ---- */
+body.dark-theme .btn-secondary {
+  background-color: #1e2130;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+body.dark-theme .btn-secondary:hover {
+  background-color: #232640;
+  border-color: var(--border-focus);
+}
+
+/* ---- Dark Mode: subtitle / muted text ---- */
+body.dark-theme .subtitle {
+  color: var(--text-secondary);
+}
+
+/* ---- Dark Mode: footer ---- */
+body.dark-theme footer {
+  background-color: #13161f;
+  border-top-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* ---- Dark Mode: profile & info section containers ---- */
+body.dark-theme [style*="backgroundColor: '#f8fafc'"],
+body.dark-theme [style*="background: '#f8fafc'"] {
+  background-color: #1a1d27 !important;
+}

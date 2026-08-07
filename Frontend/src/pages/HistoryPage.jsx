@@ -123,7 +123,7 @@ const HistoryPage = () => {
                   <tr key={b.bookingId}>
                     <td><strong>{b.bookingId}</strong></td>
                     <td>
-                      <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                      <code style={{ background: 'var(--bg-main)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
                         PIN-{b.entryPin || b.pin || '8492'}
                       </code>
                     </td>
@@ -175,7 +175,7 @@ const HistoryPage = () => {
           <p className="subtitle" style={{ fontSize: '13px', marginBottom: '16px' }}>Add extra hours to your existing slot reservation</p>
 
           {activeExtendBooking && (
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
+            <div style={{ background: 'var(--bg-main)', padding: '16px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', border: '1px solid var(--border-color)' }}>
               <div><strong>Booking ID:</strong> <span id="extend-booking-id">{activeExtendBooking.bookingId}</span></div>
               <div><strong>Reserved Slot:</strong> <strong id="extend-slot" style={{ color: 'var(--primary-blue)' }}>{activeExtendBooking.slotNumber || activeExtendBooking.slotId}</strong></div>
               <div><strong>Location:</strong> <span id="extend-facility">{activeExtendBooking.locationName || activeExtendBooking.facilityName}</span></div>
