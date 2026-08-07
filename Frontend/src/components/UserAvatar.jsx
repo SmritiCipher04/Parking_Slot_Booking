@@ -5,7 +5,7 @@
  * a clean circular badge with the user's uppercase initials on royal blue background.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const getInitials = (name = '') => {
   if (!name) return 'U';
@@ -20,6 +20,10 @@ const UserAvatar = ({ user, size = 36, style = {} }) => {
   const [imageError, setImageError] = useState(false);
   const initials = getInitials(user ? user.name : 'User');
   const picture = user ? user.profilePicture : null;
+
+  useEffect(() => {
+    setImageError(false);
+  }, [picture]);
 
   if (picture && !imageError) {
     return (

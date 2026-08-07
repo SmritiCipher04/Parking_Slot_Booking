@@ -18,6 +18,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const fs = require('fs');
 const User = require('../models/User');
 const dataStore = require('../models/dataStore');
 
@@ -412,8 +413,8 @@ const googleLogin = async (req, res) => {
           });
           console.log(`[Google Auth] ✅ Created new Google-authenticated user in Atlas: ${user.email}`);
         } else {
-          // Update profile picture from Google if updated
-          if (userPicture) user.profilePicture = userPicture;
+          // Update profile picture from Google ONLY IF user doesn't already have one
+          if (userPicture && !user.profilePicture) user.profilePicture = userPicture;
           user.authProvider = 'google';
           await user.save();
         }
@@ -437,7 +438,7 @@ const googleLogin = async (req, res) => {
         };
         dataStore.users.push(user);
       } else {
-        if (userPicture) user.profilePicture = userPicture;
+        if (userPicture && !user.profilePicture) user.profilePicture = userPicture;
         user.authProvider = 'google';
       }
     }
@@ -464,14 +465,31 @@ const googleLogin = async (req, res) => {
   }
 };
 
-// POST /api/users/profile-picture (Multer Image Upload)
+// POST /api/users/profile-picture (Multer Image Upload -> Permanent Base64 Data URI)
 const uploadProfilePicture = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please select an image file to upload.' });
     }
 
-    const pictureUrl = `/uploads/avatars/${req.file.filename}`;
+    // Convert uploaded image to permanent Base64 Data URI stored directly in MongoDB Atlas.
+    // This guarantees profile pictures NEVER vanish when Render restarts or redeploys!
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const fileBuffer = req.file.buffer || (req.file.path ? fs.readFileSync(req.file.path) : null);
+    
+    if (!fileBuffer) {
+      return res.status(400).json({ success: false, message: 'Could not read uploaded image file.' });
+    }
+
+    const pictureUrl = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+
+    // Clean up temporary disk file if saved to disk by multer
+    if (req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {}
+    }
+
     let updatedUser = null;
 
     if (isDbConnected()) {

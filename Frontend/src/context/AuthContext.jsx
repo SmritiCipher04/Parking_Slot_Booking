@@ -46,6 +46,31 @@ export const AuthProvider = ({ children }) => {
 
   const getApiBase = () => '/api';
 
+  // Sync user profile (including permanent profilePicture) from MongoDB Atlas whenever userToken exists
+  useEffect(() => {
+    if (userToken) {
+      fetch(`${getApiBase()}/users/profile`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            setUser(prev => {
+              const newUser = { ...prev, ...data.user };
+              const isRemembered = localStorage.getItem(KEYS.REMEMBER_ME) !== 'false';
+              const storage = isRemembered ? localStorage : sessionStorage;
+              storage.setItem(KEYS.CURRENT_USER, JSON.stringify(newUser));
+              return newUser;
+            });
+          }
+        })
+        .catch(err => console.warn('[AuthContext] Error syncing profile from Atlas:', err));
+    }
+  }, [userToken]);
+
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
     'Authorization': userToken ? `Bearer ${userToken}` : ''
