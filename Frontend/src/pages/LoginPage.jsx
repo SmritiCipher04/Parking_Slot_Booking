@@ -60,7 +60,7 @@ const LoginPage = () => {
     <>
       <Navbar />
       <div className="container auth-container">
-        <h2>User Portal Login</h2>
+        <h2 style={{ color: 'var(--primary-blue)', fontWeight: 700 }}>Welcome Back</h2>
         <p className="subtitle">Access your account to book slots and manage reservations</p>
 
         <form id="login-form" onSubmit={handleLoginSubmit}>
