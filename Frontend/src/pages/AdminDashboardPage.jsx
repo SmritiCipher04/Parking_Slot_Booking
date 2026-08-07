@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Modal from '../components/Modal';
@@ -8,6 +9,7 @@ import UserAvatar from '../components/UserAvatar';
 
 const AdminDashboardPage = () => {
   const { admin, getAdminAuthHeaders } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({
@@ -40,13 +42,13 @@ const AdminDashboardPage = () => {
       });
       const data = await res.json();
       if (data.success) {
-        alert(data.message);
+        showToast(data.message || 'Location approved!', 'success');
         fetchAdminData();
       } else {
-        alert(data.message || 'Error approving location.');
+        showToast(data.message || 'Error approving location.', 'error');
       }
     } catch (err) {
-      alert('Error connecting to backend.');
+      showToast('Error connecting to backend.', 'error');
     }
   };
 
@@ -62,13 +64,13 @@ const AdminDashboardPage = () => {
       });
       const data = await res.json();
       if (data.success) {
-        alert(data.message);
+        showToast(data.message || 'Location rejected.', 'info');
         fetchAdminData();
       } else {
-        alert(data.message || 'Error rejecting location.');
+        showToast(data.message || 'Error rejecting location.', 'error');
       }
     } catch (err) {
-      alert('Error connecting to backend.');
+      showToast('Error connecting to backend.', 'error');
     }
   };
 
@@ -155,7 +157,7 @@ const AdminDashboardPage = () => {
   const handleSaveFacility = async (e) => {
     e.preventDefault();
     if (!facName || !facAddress) {
-      alert('Please fill out all facility fields.');
+      showToast('Please fill out all facility fields.', 'error');
       return;
     }
 
@@ -179,20 +181,20 @@ const AdminDashboardPage = () => {
       setFacAddress('');
 
       if (data.success) {
-        alert(`New location "${facName}" created with 20 slots in MongoDB Atlas!`);
+        showToast(`New location "${facName}" created with 20 slots in MongoDB Atlas!`, 'success');
         fetchAdminData();
       } else {
-        alert(data.message || 'Error creating location.');
+        showToast(data.message || 'Error creating location.', 'error');
       }
     } catch (err) {
-      alert('Error creating location.');
+      showToast('Error creating location.', 'error');
     }
   };
 
   const handleSavePlan = async (e) => {
     e.preventDefault();
     if (!planName || !planPrice || !planFacId) {
-      alert('Please fill out all plan fields.');
+      showToast('Please fill out all plan fields.', 'error');
       return;
     }
 
@@ -219,13 +221,13 @@ const AdminDashboardPage = () => {
       setPlanName('');
 
       if (data.success) {
-        alert(`ExcuseME PLUS plan "${planName}" created successfully!`);
+        showToast(`ExcuseME PLUS plan "${planName}" created successfully!`, 'success');
         fetchAdminData();
       } else {
-        alert(data.message || 'Error creating plan.');
+        showToast(data.message || 'Error creating plan.', 'error');
       }
     } catch (err) {
-      alert('Error creating subscription plan.');
+      showToast('Error creating subscription plan.', 'error');
     }
   };
 
@@ -238,11 +240,11 @@ const AdminDashboardPage = () => {
         });
         const data = await res.json();
         if (data.success) {
-          alert('Plan deleted.');
+          showToast('Plan deleted.', 'info');
           fetchAdminData();
         }
       } catch (err) {
-        alert('Error deleting plan.');
+        showToast('Error deleting plan.', 'error');
       }
     }
   };

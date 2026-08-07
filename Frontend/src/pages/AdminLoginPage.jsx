@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 
 const AdminLoginPage = () => {
   const { admin, adminLogin } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
@@ -38,10 +40,10 @@ const AdminLoginPage = () => {
     e.preventDefault();
     const res = await adminLogin(username, password);
     if (res.success) {
-      alert('Admin Access Granted! Welcome to the Admin Control Dashboard.');
+      showToast('Admin Access Granted! Welcome to the Admin Control Dashboard.', 'success');
       navigate('/admin-dashboard');
     } else {
-      alert(res.message || 'Invalid admin credentials.');
+      showToast(res.message || 'Invalid admin credentials.', 'error');
     }
   };
 

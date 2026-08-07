@@ -8,12 +8,14 @@
 import React from 'react';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 const GoogleLoginButton = ({ onSuccessCallback }) => {
   const { login } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -28,14 +30,14 @@ const GoogleLoginButton = ({ onSuccessCallback }) => {
       if (data.success && data.token && data.user) {
         login(data.user, data.token);
         if (onSuccessCallback) onSuccessCallback(data);
-        alert(`Welcome, ${data.user.name}! Successfully signed in with Google.`);
+        showToast(`Welcome, ${data.user.name}! Successfully signed in with Google.`, 'success');
         navigate('/');
       } else {
-        alert(data.message || 'Google Sign-In failed.');
+        showToast(data.message || 'Google Sign-In failed.', 'error');
       }
     } catch (err) {
       console.error('Google login error:', err);
-      alert('Error connecting to backend server for Google Sign-In.');
+      showToast('Error connecting to backend server for Google Sign-In.', 'error');
     }
   };
 
@@ -58,14 +60,14 @@ const GoogleLoginButton = ({ onSuccessCallback }) => {
       if (data.success && data.token && data.user) {
         login(data.user, data.token);
         if (onSuccessCallback) onSuccessCallback(data);
-        alert(`Welcome, ${data.user.name}! Signed in with Google.`);
+        showToast(`Welcome, ${data.user.name}! Signed in with Google.`, 'success');
         navigate('/');
       } else {
-        alert(data.message || 'Google Sign-In failed.');
+        showToast(data.message || 'Google Sign-In failed.', 'error');
       }
     } catch (err) {
       console.error('Simulated Google login error:', err);
-      alert('Error connecting to backend server.');
+      showToast('Error connecting to backend server.', 'error');
     }
   };
 
@@ -75,7 +77,7 @@ const GoogleLoginButton = ({ onSuccessCallback }) => {
         <div className="google-btn-wrapper" style={{ margin: '16px 0', width: '100%', display: 'flex', justifyContent: 'center' }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
-            onError={() => alert('Google Sign-In was cancelled or failed.')}
+            onError={() => showToast('Google Sign-In was cancelled or failed.', 'error')}
             useOneTap
             shape="pill"
             theme="outline"

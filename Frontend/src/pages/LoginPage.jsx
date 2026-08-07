@@ -49,13 +49,13 @@ const LoginPage = () => {
     });
 
     if (res.success) {
-      alert('Success! Your password has been reset. Please log in with your new password.');
+      showToast('Success! Your password has been reset. Please log in with your new password.', 'success');
       setIsForgotModalOpen(false);
       setForgotEmail('');
       setForgotPhone('');
       setForgotNewPassword('');
     } else {
-      alert(res.message || 'Password reset failed.');
+      showToast(res.message || 'Password reset failed.', 'error');
     }
   };
 

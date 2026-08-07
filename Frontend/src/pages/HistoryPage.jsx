@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Modal from '../components/Modal';
 
 const HistoryPage = () => {
   const { user, getAuthHeaders } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
@@ -43,13 +45,13 @@ const HistoryPage = () => {
         });
         const data = await res.json();
         if (data.success) {
-          alert(`Booking ${id} cancelled successfully.`);
+          showToast(`Booking ${id} cancelled successfully.`, 'success');
           fetchBookings();
         } else {
-          alert(data.message || 'Cancellation failed.');
+          showToast(data.message || 'Cancellation failed.', 'error');
         }
       } catch (err) {
-        alert('Server error during cancellation.');
+        showToast('Server error during cancellation.', 'error');
       }
     }
   };
@@ -73,13 +75,13 @@ const HistoryPage = () => {
       setActiveExtendBooking(null);
 
       if (data.success) {
-        alert(`Booking extended by ${extendHours} hours!`);
+        showToast(`Booking extended by ${extendHours} hours!`, 'success');
         fetchBookings();
       } else {
-        alert(data.message || 'Extension failed.');
+        showToast(data.message || 'Extension failed.', 'error');
       }
     } catch (err) {
-      alert('Server error during extension.');
+      showToast('Server error during extension.', 'error');
     }
   };
 

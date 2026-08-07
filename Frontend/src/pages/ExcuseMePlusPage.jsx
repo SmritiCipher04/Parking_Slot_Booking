@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Modal from '../components/Modal';
 
 const ExcuseMePlusPage = () => {
   const { user, getAuthHeaders } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [facilities, setFacilities] = useState([]);
@@ -73,7 +75,7 @@ const ExcuseMePlusPage = () => {
 
   const handleBuyPass = (plan) => {
     if (!user) {
-      alert('Please log in to purchase an ExcuseME PLUS Subscription Pass.');
+      showToast('Please log in to purchase an ExcuseME PLUS Subscription Pass.', 'info');
       navigate('/login');
       return;
     }
@@ -97,13 +99,13 @@ const ExcuseMePlusPage = () => {
       const result = await res.json();
       if (result.success && result.subscription) {
         setPurchasedSubscription(result.subscription);
-        alert(`🎉 ${result.message}`);
+        showToast(`🎉 ${result.message}`, 'success');
       } else {
-        alert('Subscription payment verification failed: ' + (result.message || 'Error'));
+        showToast('Subscription payment verification failed: ' + (result.message || 'Error'), 'error');
       }
     } catch (err) {
       console.error('Finalize subscription error:', err);
-      alert('Connection error during payment confirmation.');
+      showToast('Connection error during payment confirmation.', 'error');
     }
   };
 

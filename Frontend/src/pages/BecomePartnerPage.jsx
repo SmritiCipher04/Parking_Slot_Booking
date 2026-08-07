@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const BecomePartnerPage = () => {
   const { user, getAuthHeaders, updateUserState } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -32,7 +34,7 @@ const BecomePartnerPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !address || !pricePerHour) {
-      alert('Please fill out all required facility details.');
+      showToast('Please fill out all required facility details.', 'error');
       return;
     }
 
@@ -57,14 +59,14 @@ const BecomePartnerPage = () => {
       const data = await res.json();
       if (data.success) {
         if (updateUserState) updateUserState({ role: 'partner' });
-        alert(`🎉 Success! Your parking space "${name}" has been registered and is pending admin approval.`);
+        showToast(`🎉 Success! Your parking space "${name}" has been registered and is pending admin approval.`, 'success');
         navigate('/partner-dashboard');
       } else {
-        alert(data.message || 'Error registering parking location.');
+        showToast(data.message || 'Error registering parking location.', 'error');
       }
     } catch (err) {
       console.error('Partner submission error:', err);
-      alert('Error connecting to backend server.');
+      showToast('Error connecting to backend server.', 'error');
     } finally {
       setSubmitting(false);
     }

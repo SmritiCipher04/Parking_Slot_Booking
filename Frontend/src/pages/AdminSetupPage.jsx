@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 
 const AdminSetupPage = () => {
   const { KEYS } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
@@ -34,12 +36,12 @@ const AdminSetupPage = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match.');
+      showToast('Passwords do not match.', 'error');
       return;
     }
 
     if (password.length < 5) {
-      alert('Password must be at least 5 characters long.');
+      showToast('Password must be at least 5 characters long.', 'error');
       return;
     }
 
@@ -54,13 +56,13 @@ const AdminSetupPage = () => {
       if (data.success && data.token) {
         localStorage.setItem(KEYS.ADMIN_TOKEN, data.token);
         localStorage.setItem(KEYS.CURRENT_ADMIN, JSON.stringify(data.admin));
-        alert('Admin setup completed successfully! Redirecting to Admin Dashboard.');
+        showToast('Admin setup completed successfully! Redirecting to Admin Dashboard.', 'success');
         navigate('/admin-dashboard');
       } else {
-        alert(data.message || 'Setup failed.');
+        showToast(data.message || 'Setup failed.', 'error');
       }
     } catch (err) {
-      alert('Error connecting to backend server.');
+      showToast('Error connecting to backend server.', 'error');
     }
   };
 

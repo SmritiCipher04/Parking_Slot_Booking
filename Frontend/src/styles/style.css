@@ -847,12 +847,12 @@ footer {
   pointer-events: auto;
   min-width: 280px;
   max-width: 420px;
-  background: #ffffff;
-  color: #1e293b;
+  background: var(--bg-card);
+  color: var(--text-primary);
   padding: 14px 20px;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
   display: flex;
   align-items: center;
   gap: 12px;

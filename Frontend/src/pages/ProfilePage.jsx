@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
@@ -10,6 +11,7 @@ import UserAvatar from '../components/UserAvatar';
 const ProfilePage = () => {
   const { user, updateUserProfile, updateUserState, changePassword, logout, getAuthHeaders } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -47,14 +49,14 @@ const ProfilePage = () => {
     // Validate image type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type.toLowerCase())) {
-      alert('Invalid file type. Please select a JPEG, PNG, or WebP image.');
+      showToast('Invalid file type. Please select a JPEG, PNG, or WebP image.', 'error');
       e.target.value = '';
       return;
     }
 
     // Validate 2MB max file size
     if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds 2MB limit. Please choose a smaller image.');
+      showToast('File size exceeds 2MB limit. Please choose a smaller image.', 'error');
       e.target.value = '';
       return;
     }
@@ -88,12 +90,13 @@ const ProfilePage = () => {
         updateUserState(data.user);
         setSelectedFile(null);
         setPreviewUrl(null);
+        showToast('Profile picture updated successfully!', 'success');
       } else {
-        alert(data.message || 'Failed to upload profile picture.');
+        showToast(data.message || 'Failed to upload profile picture.', 'error');
       }
     } catch (err) {
       console.error('Upload error:', err);
-      alert('Error uploading profile picture to server.');
+      showToast('Error uploading profile picture to server.', 'error');
     } finally {
       setUploading(false);
     }
@@ -118,11 +121,12 @@ const ProfilePage = () => {
         updateUserState(data.user);
         setSelectedFile(null);
         setPreviewUrl(null);
+        showToast('Profile picture removed.', 'info');
       } else {
-        alert(data.message || 'Failed to remove picture.');
+        showToast(data.message || 'Failed to remove picture.', 'error');
       }
     } catch (err) {
-      alert('Error connecting to server.');
+      showToast('Error connecting to server.', 'error');
     }
   };
 
@@ -130,9 +134,9 @@ const ProfilePage = () => {
     e.preventDefault();
     const res = await updateUserProfile(email, { name, phone });
     if (res.success) {
-      alert('Profile details updated successfully!');
+      showToast('Profile details updated successfully!', 'success');
     } else {
-      alert(res.message || 'Profile update failed.');
+      showToast(res.message || 'Profile update failed.', 'error');
     }
   };
 
@@ -140,11 +144,11 @@ const ProfilePage = () => {
     e.preventDefault();
     const res = await changePassword({ currentPassword, newPassword });
     if (res.success) {
-      alert('Password changed successfully in MongoDB Atlas!');
+      showToast('Password changed successfully!', 'success');
       setCurrentPassword('');
       setNewPassword('');
     } else {
-      alert(res.message || 'Password change failed.');
+      showToast(res.message || 'Password change failed.', 'error');
     }
   };
 
@@ -156,7 +160,7 @@ const ProfilePage = () => {
   const handleImmediateAccountDeletion = async (e) => {
     e.preventDefault();
     if (!confirmPassword) {
-      alert('Please enter your password to confirm account deletion.');
+      showToast('Please enter your password to confirm account deletion.', 'error');
       return;
     }
 
@@ -183,14 +187,14 @@ const ProfilePage = () => {
 
       const data = await res.json();
       if (data.success) {
-        alert(data.message);
+        showToast(data.message || 'Account deleted successfully.', 'success');
         logout();
         navigate('/login');
       } else {
-        alert(data.message || 'Account deletion failed. Please check your password.');
+        showToast(data.message || 'Account deletion failed. Please check your password.', 'error');
       }
     } catch (err) {
-      alert('Error during account deletion request.');
+      showToast('Error during account deletion request.', 'error');
     } finally {
       setDeletionLoading(false);
     }

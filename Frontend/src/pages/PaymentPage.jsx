@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Modal from '../components/Modal';
 
 const PaymentPage = () => {
   const { user, getAuthHeaders } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -107,11 +109,11 @@ const PaymentPage = () => {
         localStorage.removeItem('excuseme_checkout');
         navigate(`/confirmation?bookingId=${result.booking.bookingId}`);
       } else {
-        alert('Payment verification failed: ' + (result.message || 'Error'));
+        showToast('Payment verification failed: ' + (result.message || 'Error'), 'error');
       }
     } catch (err) {
       console.error('Finalize booking error:', err);
-      alert('Connection error during payment confirmation.');
+      showToast('Connection error during payment confirmation.', 'error');
     }
   };
 
@@ -124,7 +126,7 @@ const PaymentPage = () => {
     e.preventDefault();
 
     if (typeof window.Razorpay === 'undefined') {
-      alert('Razorpay SDK unavailable. Opening local payment simulator...');
+      showToast('Razorpay SDK unavailable. Opening local payment simulator...', 'info');
       setIsSimulatorOpen(true);
       return;
     }
@@ -151,7 +153,7 @@ const PaymentPage = () => {
         description: `Slot ${slotId} - ${facilityName}`,
         order_id: orderData.orderId,
         handler: function (response) {
-          alert(`Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
+          showToast(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`, 'success');
           finalizeBooking(response.razorpay_payment_id, 'Razorpay Checkout', response.razorpay_signature, response.razorpay_order_id);
         },
         prefill: {
@@ -173,7 +175,7 @@ const PaymentPage = () => {
   const handleSimulatorSubmit = async () => {
     const simPaymentId = `sim_${Date.now()}`;
     setIsSimulatorOpen(false);
-    alert(`Simulated Payment Authorized Successfully!\nPayment ID: ${simPaymentId}`);
+    showToast(`Simulated Payment Authorized Successfully! Payment ID: ${simPaymentId}`, 'success');
     await finalizeBooking(simPaymentId, 'Local Payment Simulator');
   };
 
