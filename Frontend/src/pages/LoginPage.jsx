@@ -5,9 +5,11 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 import Modal from '../components/Modal';
+import { useToast } from '../context/ToastContext';
 
 const LoginPage = () => {
   const { user, login, resetPassword } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -31,9 +33,10 @@ const LoginPage = () => {
     e.preventDefault();
     const result = await login(email, password, rememberMe);
     if (result.success) {
+      showToast('Logged in successfully!', 'success');
       navigate('/');
     } else {
-      alert(result.message || 'Login failed. Please check credentials.');
+      showToast(result.message || 'Invalid email or password.', 'error');
     }
   };
 

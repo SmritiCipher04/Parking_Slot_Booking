@@ -6,8 +6,11 @@ import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 
+import { useToast } from '../context/ToastContext';
+
 const RegisterPage = () => {
   const { user, registerUser } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -26,21 +29,21 @@ const RegisterPage = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match. Please ensure both password fields match.');
+      showToast('Passwords do not match. Please check both password fields.', 'error');
       return;
     }
 
     if (password.length < 4) {
-      alert('Password must be at least 4 characters long.');
+      showToast('Password must be at least 4 characters long.', 'error');
       return;
     }
 
     const result = await registerUser({ name, email, phone, password });
     if (result.success) {
-      alert('Account registered successfully! Please log in with your credentials.');
+      showToast('Account registered successfully! Please log in.', 'success');
       navigate('/login');
     } else {
-      alert(result.message || 'Registration failed.');
+      showToast(result.message || 'Registration failed.', 'error');
     }
   };
 
