@@ -119,6 +119,33 @@ const HomePage = () => {
     }
   };
 
+  const handleSearchLocation = async (query, lat, lng) => {
+    setSearchTerm(query);
+    if (lat !== null && lat !== undefined && lng !== null && lng !== undefined) {
+      try {
+        const res = await fetch(`/api/locations/nearby?lat=${lat}&lng=${lng}&radius=15`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setFacilities(data.data);
+          setMapCenter([lat, lng]);
+        }
+      } catch (err) {
+        console.error('Error fetching nearby locations:', err);
+      }
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    // Reload default facilities
+    fetch('/api/locations')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setFacilities(data.data);
+      })
+      .catch(err => console.error(err));
+  };
+
   return (
     <>
       <Navbar />
@@ -138,14 +165,17 @@ const HomePage = () => {
                 id="search-location"
                 placeholder="e.g. City Mall, GS Road, Dispur..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  if (e.target.value === '') handleClearSearch();
+                }}
                 style={{ paddingRight: searchTerm ? '32px' : '12px' }}
               />
               {searchTerm && (
                 <button
                   type="button"
                   title="Clear search"
-                  onClick={() => setSearchTerm('')}
+                  onClick={handleClearSearch}
                   style={{
                     position: 'absolute',
                     right: '10px',
@@ -214,7 +244,7 @@ const HomePage = () => {
           zoom={userLocation ? 14 : 13}
           selectedFacilityId={selectedFacilityId}
           onSelectFacility={handleFacilitySelect}
-          onSearchLocation={(query) => setSearchTerm(query)}
+          onSearchLocation={handleSearchLocation}
           onUseCurrentLocation={requestUserLocation}
         />
 
@@ -252,7 +282,7 @@ const HomePage = () => {
                     </td>
                     <td>{f.address || f.location || 'Guwahati'}</td>
                     <td>
-                      {f.distanceKm !== null ? (
+                      {f.distanceKm !== null && f.distanceKm !== undefined ? (
                         <strong style={{ color: '#059669', fontSize: '13px' }}>{f.distanceKm} km</strong>
                       ) : (
                         <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>N/A</span>
@@ -270,8 +300,14 @@ const HomePage = () => {
               })
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  No parking facilities matched your search location.
+                <td colSpan="6" style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: '28px', marginBottom: '8px' }}>📍</div>
+                  <strong style={{ color: 'var(--text-primary)', fontSize: '15px' }}>
+                    No parking facilities found near {searchTerm ? `"${searchTerm}"` : 'this location'}.
+                  </strong>
+                  <p style={{ fontSize: '13px', margin: '6px 0 0', color: 'var(--text-secondary)' }}>
+                    Try searching a different area near Guwahati, Dispur, or Bhangagarh.
+                  </p>
                 </td>
               </tr>
             )}
