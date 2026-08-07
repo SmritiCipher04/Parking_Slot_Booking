@@ -38,6 +38,11 @@ const userSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     default: 'local'
   },
+  role: {
+    type: String,
+    enum: ['user', 'partner', 'admin'],
+    default: 'user'
+  },
   registrationDate: {
     type: Date,
     default: Date.now

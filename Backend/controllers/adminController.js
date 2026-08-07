@@ -236,6 +236,88 @@ const getAllLocations = async (req, res) => {
   }
 };
 
+// GET /api/admin/pending-locations
+const getPendingLocations = async (req, res) => {
+  try {
+    if (isDbConnected()) {
+      const locations = await ParkingLocation.find({ status: 'pending' }).sort({ createdAt: -1 });
+      return res.status(200).json({ success: true, count: locations.length, data: locations });
+    } else {
+      const pending = dataStore.facilities.filter(f => f.status === 'pending');
+      return res.status(200).json({ success: true, count: pending.length, data: pending });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PUT /api/admin/locations/:id/approve
+const approveLocation = async (req, res) => {
+  try {
+    const locationId = req.params.id;
+
+    if (isDbConnected()) {
+      const location = await ParkingLocation.findByIdAndUpdate(
+        locationId,
+        { status: 'active', rejectionReason: '' },
+        { new: true }
+      );
+      if (!location) return res.status(404).json({ success: false, message: 'Location not found.' });
+
+      return res.status(200).json({
+        success: true,
+        message: `Parking location "${location.name}" approved! It is now active in search results.`,
+        location
+      });
+    } else {
+      const location = dataStore.facilities.find(f => f._id === locationId || f.facilityId === locationId);
+      if (!location) return res.status(404).json({ success: false, message: 'Location not found.' });
+
+      location.status = 'active';
+      location.rejectionReason = '';
+      return res.status(200).json({
+        success: true,
+        message: `Parking location "${location.name}" approved!`,
+        location
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PUT /api/admin/locations/:id/reject
+const rejectLocation = async (req, res) => {
+  try {
+    const locationId = req.params.id;
+    const { rejectionReason } = req.body;
+
+    if (isDbConnected()) {
+      const location = await ParkingLocation.findByIdAndUpdate(
+        locationId,
+        { status: 'rejected', rejectionReason: rejectionReason || 'Does not meet criteria' },
+        { new: true }
+      );
+      if (!location) return res.status(404).json({ success: false, message: 'Location not found.' });
+
+      return res.status(200).json({
+        success: true,
+        message: `Parking location "${location.name}" rejected.`,
+        location
+      });
+    } else {
+      const location = dataStore.facilities.find(f => f._id === locationId || f.facilityId === locationId);
+      if (!location) return res.status(404).json({ success: false, message: 'Location not found.' });
+
+      location.status = 'rejected';
+      location.rejectionReason = rejectionReason || 'Does not meet criteria';
+      return res.status(200).json({ success: true, message: `Parking location "${location.name}" rejected.`, location });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const createLocation = async (req, res) => {
   try {
     const { name, address, totalSlots, pricePerHour, latitude, longitude } = req.body;
@@ -381,6 +463,9 @@ module.exports = {
   getDashboardStats,
   getAllUsers,
   getAllLocations,
+  getPendingLocations,
+  approveLocation,
+  rejectLocation,
   createLocation,
   updateLocation,
   deleteLocation,

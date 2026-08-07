@@ -76,6 +76,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/payment', paymentRoutes); // Route alias
 app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
+app.use('/api/partner', require('./routes/partnerRoutes'));
 
 // Secure Configuration Endpoint (Google Maps API Key)
 app.get('/api/config/maps-key', (req, res) => {

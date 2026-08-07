@@ -14,10 +14,16 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 const getLocations = async (req, res) => {
   try {
     if (isDbConnected()) {
-      const locations = await ParkingLocation.find();
+      const locations = await ParkingLocation.find({
+        $or: [
+          { status: 'active' },
+          { status: { $exists: false } }
+        ]
+      });
       return res.status(200).json({ success: true, data: locations });
     } else {
-      return res.status(200).json({ success: true, data: dataStore.facilities });
+      const active = dataStore.facilities.filter(f => f.status === 'active' || !f.status);
+      return res.status(200).json({ success: true, data: active });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

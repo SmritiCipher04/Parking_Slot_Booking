@@ -36,6 +36,32 @@ const parkingLocationSchema = new mongoose.Schema({
     required: false,
     default: 91.7362
   },
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'active', 'rejected'],
+    default: 'active'
+  },
+  rejectionReason: {
+    type: String,
+    default: ''
+  },
+  contactName: {
+    type: String,
+    default: ''
+  },
+  contactEmail: {
+    type: String,
+    default: ''
+  },
+  contactPhone: {
+    type: String,
+    default: ''
+  },
   createdAt: {
     type: Date,
     default: Date.now

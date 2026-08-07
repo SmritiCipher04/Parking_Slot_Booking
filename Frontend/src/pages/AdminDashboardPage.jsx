@@ -21,6 +21,7 @@ const AdminDashboardPage = () => {
   });
 
   const [facilities, setFacilities] = useState([]);
+  const [pendingLocations, setPendingLocations] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [deletedLogs, setDeletedLogs] = useState([]);
@@ -29,6 +30,47 @@ const AdminDashboardPage = () => {
 
   const [selectedLog, setSelectedLog] = useState(null);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+
+  const handleApprovePartnerLocation = async (locId) => {
+    if (!window.confirm('Approve this partner parking location for live search results?')) return;
+    try {
+      const res = await fetch(`/api/admin/locations/${encodeURIComponent(locId)}/approve`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        fetchAdminData();
+      } else {
+        alert(data.message || 'Error approving location.');
+      }
+    } catch (err) {
+      alert('Error connecting to backend.');
+    }
+  };
+
+  const handleRejectPartnerLocation = async (locId) => {
+    const reason = window.prompt('Enter rejection reason for partner (optional):', 'Does not meet safety/size criteria');
+    if (reason === null) return;
+
+    try {
+      const res = await fetch(`/api/admin/locations/${encodeURIComponent(locId)}/reject`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders(),
+        body: JSON.stringify({ rejectionReason: reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        fetchAdminData();
+      } else {
+        alert(data.message || 'Error rejecting location.');
+      }
+    } catch (err) {
+      alert('Error connecting to backend.');
+    }
+  };
 
   // Add Facility Modal State
   const [isFacModalOpen, setIsFacModalOpen] = useState(false);
@@ -81,6 +123,11 @@ const AdminDashboardPage = () => {
       const dlRes = await fetch('/api/admin/deleted-accounts', { headers });
       const dlData = await dlRes.json();
       if (dlData.success) setDeletedLogs(dlData.data);
+
+      // Pending Partner Parking Locations
+      const plRes = await fetch('/api/admin/pending-locations', { headers });
+      const plData = await plRes.json();
+      if (plData.success) setPendingLocations(plData.data);
 
       // ExcuseME PLUS Subscription Plans
       const spRes = await fetch('/api/subscriptions/plans');
@@ -354,6 +401,68 @@ const AdminDashboardPage = () => {
             )}
           </tbody>
         </table>
+
+        {/* Pending Partner Parking Locations */}
+        {pendingLocations.length > 0 && (
+          <div style={{ marginTop: '36px', backgroundColor: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '12px', padding: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: '#d48806', fontSize: '18px' }}>
+              ⏳ Pending Partner Locations ({pendingLocations.length})
+            </h3>
+            <p className="subtitle" style={{ fontSize: '13px', margin: '0 0 16px 0' }}>
+              Review partner submitted parking spaces before approving them for live search results.
+            </p>
+
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', backgroundColor: '#ffffff' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#fff3c4', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px' }}>Facility Name</th>
+                  <th style={{ padding: '10px 12px' }}>Address</th>
+                  <th style={{ padding: '10px 12px' }}>Slots</th>
+                  <th style={{ padding: '10px 12px' }}>Price/hr</th>
+                  <th style={{ padding: '10px 12px' }}>Partner Contact</th>
+                  <th style={{ padding: '10px 12px' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingLocations.map(pl => {
+                  const pId = pl._id || pl.facilityId;
+                  return (
+                    <tr key={pId} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px', fontWeight: 600 }}>{pl.name}</td>
+                      <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>{pl.address}</td>
+                      <td style={{ padding: '12px' }}>{pl.totalSlots} Slots</td>
+                      <td style={{ padding: '12px' }}>Rs. {pl.pricePerHour}/hr</td>
+                      <td style={{ padding: '12px' }}>
+                        <div>{pl.contactName || 'Partner'}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{pl.contactEmail || ''} {pl.contactPhone ? `· ${pl.contactPhone}` : ''}</div>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            style={{ backgroundColor: '#16a34a', fontSize: '12px', padding: '4px 10px' }}
+                            onClick={() => handleApprovePartnerLocation(pId)}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger"
+                            style={{ fontSize: '12px', padding: '4px 10px' }}
+                            onClick={() => handleRejectPartnerLocation(pId)}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Facilities Management */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '36px', marginBottom: '16px' }}>

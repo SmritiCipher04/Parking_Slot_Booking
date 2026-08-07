@@ -12,6 +12,9 @@ const {
   getDashboardStats,
   getAllUsers,
   getAllLocations,
+  getPendingLocations,
+  approveLocation,
+  rejectLocation,
   createLocation,
   updateLocation,
   deleteLocation,
@@ -32,6 +35,9 @@ router.post('/login', adminLogin);
 router.get('/dashboard-stats', protectAdmin, getDashboardStats);
 router.get('/users', protectAdmin, getAllUsers);
 router.get('/locations', protectAdmin, getAllLocations);
+router.get('/pending-locations', protectAdmin, getPendingLocations);
+router.put('/locations/:id/approve', protectAdmin, approveLocation);
+router.put('/locations/:id/reject', protectAdmin, rejectLocation);
 router.post('/locations', protectAdmin, createLocation);
 router.put('/locations/:id', protectAdmin, updateLocation);
 router.delete('/locations/:id', protectAdmin, deleteLocation);

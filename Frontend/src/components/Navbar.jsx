@@ -69,6 +69,14 @@ const Navbar = () => {
                 <Link to="/history" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
                   📋 My Bookings
                 </Link>
+                <Link to="/become-partner" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
+                  🏢 List Your Parking Space
+                </Link>
+                {(user.role === 'partner' || user.role === 'admin') && (
+                  <Link to="/partner-dashboard" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
+                    📊 Partner Dashboard
+                  </Link>
+                )}
                 <Link to="/my-subscriptions" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
                   🎫 My ExcuseME PLUS Passes
                 </Link>
@@ -102,6 +110,9 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <Link to="/become-partner" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
+                  🏢 List Your Parking Space
+                </Link>
                 <Link to="/excuseme-plus" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
                   💳 ExcuseME PLUS Passes
                 </Link>
@@ -132,11 +143,17 @@ const Navbar = () => {
               <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
                 Home
               </Link>
+              {(user.role === 'partner' || user.role === 'admin') ? (
+                <Link to="/partner-dashboard" className={`nav-link ${location.pathname === '/partner-dashboard' ? 'active' : ''}`}>
+                  Partner Dashboard
+                </Link>
+              ) : (
+                <Link to="/become-partner" className={`nav-link ${location.pathname === '/become-partner' ? 'active' : ''}`}>
+                  List Parking Space
+                </Link>
+              )}
               <Link to="/history" className={`nav-link ${location.pathname === '/history' ? 'active' : ''}`}>
                 My Bookings
-              </Link>
-              <Link to="/transactions" className={`nav-link ${location.pathname === '/transactions' ? 'active' : ''}`}>
-                Transactions
               </Link>
               <Link to="/profile" className="user-badge" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px 4px 6px', borderRadius: '20px' }}>
                 <UserAvatar user={user} size={26} />
